@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ArrowDown, Bug, Download, Mail, MapPin, Sparkles } from "lucide-react";
+import { ArrowDown, Download, Mail, MapPin, Sparkles, Gamepad2 } from "lucide-react";
 import { GithubIcon as Github, LinkedinIcon as Linkedin } from "./icons";
 import { profile } from "@/lib/data";
 
@@ -182,8 +182,8 @@ export function Hero() {
             <a href="#projects" className="btn-primary">
               <Sparkles size={16} /> See projects
             </a>
-            <a href="#lab" className="btn-ghost">
-              <Bug size={16} /> Play in the lab
+            <a href="#arena" className="btn-ghost">
+              <Gamepad2 size={16} /> Play Dev Arena
             </a>
             <a href={profile.cv.developer} download className="btn-ghost">
               <Download size={16} /> CV

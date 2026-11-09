@@ -34,6 +34,11 @@ export const ACHIEVEMENTS = {
   theme: { title: "Night Owl / Early Bird", desc: "Switched the theme" },
   secret: { title: "Secret Finder", desc: "Discovered a hidden command" },
   reader: { title: "Bookworm", desc: "Opened one of my books" },
+  gladiator: { title: "Code Gladiator", desc: "Finished a Dev Arena round" },
+  flawless: { title: "Flawless", desc: "Answered every question in a round correctly" },
+  onFire: { title: "On Fire", desc: "10 correct answers in a row in the Dev Arena" },
+  sqlWizard: { title: "SQL Wizard", desc: "Perfect SQL Rush round on Hard" },
+  daily: { title: "Daily Dev", desc: "Solved today's daily challenge" },
 } as const;
 export type AchievementId = keyof typeof ACHIEVEMENTS;
 

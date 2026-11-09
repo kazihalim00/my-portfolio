@@ -378,7 +378,7 @@ export function Skills() {
 /* ---------------- Education & Leadership ---------------- */
 export function Journey() {
   return (
-    <Section id="journey" eyebrow="07 · Beyond code" title="Education & leadership">
+    <Section id="journey" eyebrow="08 · Beyond code" title="Education & leadership">
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         <Reveal>
           <SpotlightCard className="h-full p-6">

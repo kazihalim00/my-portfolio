@@ -60,7 +60,7 @@ export function Books() {
   return (
     <Section
       id="books"
-      eyebrow="06 · Writing"
+      eyebrow="07 · Writing"
       title={
         <>
           Beyond code, <span className="gradient-text">I write books</span>.

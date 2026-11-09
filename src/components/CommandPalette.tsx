@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Bug, Copy, Download, FlaskConical, Mail, Moon, Search, SquareTerminal, Trophy, Hash, ExternalLink } from "lucide-react";
+import { ArrowRight, Bug, Copy, Download, FlaskConical, Mail, Moon, Search, SquareTerminal, Trophy, Hash, ExternalLink, Gamepad2 } from "lucide-react";
 import { profile, sections } from "@/lib/data";
 import { ACHIEVEMENTS, useApp } from "./Providers";
 import { openLab } from "./lab/Lab";
+import { openArena } from "./arena/Arena";
 
 type Action = { id: string; label: string; group: string; icon: React.ReactNode; run: () => void; keywords?: string };
 
@@ -24,6 +25,9 @@ export function CommandPalette() {
         icon: <Hash size={15} />,
         run: () => document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth" }),
       })),
+      { id: "bugspot", label: "Play Bug Spotter", group: "Dev Arena", icon: <Gamepad2 size={15} />, run: () => openArena("bugspot"), keywords: "game code" },
+      { id: "output", label: "Play Output Guess", group: "Dev Arena", icon: <Gamepad2 size={15} />, run: () => openArena("output"), keywords: "game javascript php" },
+      { id: "sql", label: "Play SQL Rush", group: "Dev Arena", icon: <Gamepad2 size={15} />, run: () => openArena("sql"), keywords: "game database query" },
       { id: "hunt", label: "Play Bug Hunt", group: "QA Lab", icon: <Bug size={15} />, run: () => openLab("hunt"), keywords: "game bugs" },
       { id: "tests", label: "Run the test suite", group: "QA Lab", icon: <FlaskConical size={15} />, run: () => openLab("tests"), keywords: "playwright" },
       { id: "term", label: "Open terminal", group: "QA Lab", icon: <SquareTerminal size={15} />, run: () => openLab("terminal"), keywords: "cli shell" },

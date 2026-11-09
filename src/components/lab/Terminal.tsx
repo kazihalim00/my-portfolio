@@ -6,10 +6,11 @@ import { useApp } from "../Providers";
 import { useLab } from "./LabState";
 import { BUGS } from "@/lib/bugs";
 import { books, penName } from "@/lib/books";
+import { openArena } from "../arena/Arena";
 
 type Out = { cmd?: string; lines: { t: string; c?: string }[] };
 
-const COMMANDS = ["help", "whoami", "about", "experience", "projects", "skills", "education", "contact", "cv", "github", "linkedin", "bughunt", "books", "read", "stats", "theme", "clear", "date", "echo", "ls", "cat", "sudo", "exit"];
+const COMMANDS = ["help", "whoami", "about", "experience", "projects", "skills", "education", "contact", "cv", "github", "linkedin", "bughunt", "arena", "books", "read", "stats", "theme", "clear", "date", "echo", "ls", "cat", "sudo", "exit"];
 
 function goto(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -63,6 +64,7 @@ export function Terminal({ onGoLab }: { onGoLab?: (tab: "hunt" | "tests") => voi
           L("  linkedin     open LinkedIn"),
           L("  books        books I have written"),
           L("  read <book>  open a free book"),
+          L("  arena [game] dev games: bugspot | output | sql"),
           L("  bughunt      jump into the Bug Hunt game"),
           L("  stats        your Bug Hunt progress"),
           L("  theme        toggle dark/light"),
@@ -120,6 +122,12 @@ export function Terminal({ onGoLab }: { onGoLab?: (tab: "hunt" | "tests") => voi
           lines = [L(`Opening ${arg}…`, "text-emerald-400")];
         } else lines = [L("usage: read pretend | read paper-addopanto", "text-slate-500")];
         break;
+      case "arena": {
+        const g = (["bugspot", "output", "sql"] as const).find((x) => x === arg.toLowerCase());
+        openArena(g);
+        lines = [L(`Opening the Dev Arena${g ? ` (${g})` : ""}… good luck! 🎮`, "text-emerald-400")];
+        break;
+      }
       case "bughunt":
         onGoLab?.("hunt");
         lines = [L("Loading ShopLite… find all 8 bugs! 🐞", "text-emerald-400")];
@@ -210,7 +218,7 @@ export function Terminal({ onGoLab }: { onGoLab?: (tab: "hunt" | "tests") => voi
     }
   };
 
-  const quick = ["help", "whoami", "projects", "skills", "contact", "sudo hire kazi"];
+  const quick = ["help", "whoami", "projects", "arena", "contact", "sudo hire kazi"];
 
   return (
     <div className="flex flex-col gap-3">
