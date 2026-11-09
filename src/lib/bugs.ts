@@ -77,7 +77,7 @@ export const BUGS: BugInfo[] = [
     title: "Double click places two orders",
     severity: "Critical",
     hint: "Impatient users click twice. Do you?",
-    steps: ["Fill a valid checkout form", "Double-click Place order quickly"],
+    steps: ["Fill a valid checkout form", "Click Place order twice, quickly"],
     expected: "Button is disabled while the order is processing",
     actual: "Two orders are created",
     test: "checkout › button is disabled while submitting",

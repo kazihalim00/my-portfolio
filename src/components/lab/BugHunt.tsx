@@ -36,6 +36,7 @@ function ShopLite({ reportMode }: { reportMode: boolean }) {
   const [processing, setProcessing] = useState(false);
   const [orders, setOrders] = useState<number[]>([]);
   const processingRef = useRef(false);
+  const lastSubmitRef = useRef(0);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const discount = subtotal * 0.1 * couponCount; // BUG: stacks
@@ -78,7 +79,9 @@ function ShopLite({ reportMode }: { reportMode: boolean }) {
     setErrors(errs);
     if (Object.keys(errs).length) return;
     if (!EMAIL_RE.test(email.trim())) lab.find("email");
-    if (processingRef.current) lab.find("doubleSubmit"); // BUG: button never disabled
+    // BUG: button never disabled, so a quick second click creates a duplicate order
+    if (processingRef.current || Date.now() - lastSubmitRef.current < 3000) lab.find("doubleSubmit");
+    lastSubmitRef.current = Date.now();
     processingRef.current = true;
     setProcessing(true);
     const orderNo = 1040 + Math.floor(Math.random() * 900);

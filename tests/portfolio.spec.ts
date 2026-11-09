@@ -93,7 +93,9 @@ test.describe("bug hunt", () => {
     const panel = tracker(page);
     await panel.getByPlaceholder("Full name *").fill("Recruiter");
     await panel.getByPlaceholder("Email *").fill("abc");
-    await panel.getByRole("button", { name: "Place order" }).dblclick();
+    const placeOrder = panel.getByRole("button", { name: /Place order|Processing/ });
+    await placeOrder.click();
+    await placeOrder.click(); // second click while the first order is still processing
     await expect(panel).toContainText("Invalid email is accepted");
     await expect(panel).toContainText("Double click places two orders");
   });
@@ -121,7 +123,9 @@ test.describe("bug hunt", () => {
     await panel.getByRole("button", { name: "Apply" }).click();
     await panel.getByPlaceholder("Full name *").fill("QA");
     await panel.getByPlaceholder("Email *").fill("nope");
-    await panel.getByRole("button", { name: "Place order" }).dblclick();
+    const placeOrder = panel.getByRole("button", { name: /Place order|Processing/ });
+    await placeOrder.click();
+    await placeOrder.click();
     await panel.getByRole("button", { name: "Remove Mechanical Keyboard" }).click();
     await expect(panel.getByText("8/8").first()).toBeVisible();
     await expect(panel.getByPlaceholder("Your name")).toBeVisible();
