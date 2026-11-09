@@ -168,3 +168,23 @@ test.describe("guestbook", () => {
     await expect(gb).toContainText("Automated hello from CI");
   });
 });
+
+test.describe("books", () => {
+  test("free book opens in the reader and remembers the page", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("#books").getByRole("link", { name: "Read free" }).first().click();
+    await expect(page).toHaveURL(/\/read\/paper-addopanto/);
+    await expect(page.locator("#page-1 canvas")).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("button", { name: "Contents" }).click();
+    await page.getByRole("dialog", { name: "Table of contents" }).getByText("লেখকের কথা").click();
+    await expect(page.getByLabel("Go to page")).toHaveAttribute("placeholder", "8", { timeout: 10_000 });
+    const saved = await page.evaluate(() => localStorage.getItem("read:paper-addopanto"));
+    expect(Number(saved)).toBeGreaterThanOrEqual(7);
+  });
+
+  test("PDFs and covers are served", async ({ request }) => {
+    for (const path of ["/books/Pretend-Kazi-Abdul-Halim-Sani.pdf", "/books/Paper-Addopanto-Kazi-Abdul-Halim-Sani.pdf", "/books/pretend-cover.jpg", "/pdf.worker.min.mjs"]) {
+      expect((await request.get(path)).status()).toBe(200);
+    }
+  });
+});

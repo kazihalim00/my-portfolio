@@ -212,6 +212,7 @@ export const sections = [
   { id: "projects", label: "Projects" },
   { id: "skills", label: "Skills" },
   { id: "lab", label: "QA Lab" },
+  { id: "books", label: "Books" },
   { id: "guestbook", label: "Guestbook" },
   { id: "contact", label: "Contact" },
 ];

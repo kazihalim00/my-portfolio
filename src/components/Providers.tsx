@@ -33,6 +33,7 @@ export const ACHIEVEMENTS = {
   signer: { title: "Friendly Visitor", desc: "Signed the guestbook" },
   theme: { title: "Night Owl / Early Bird", desc: "Switched the theme" },
   secret: { title: "Secret Finder", desc: "Discovered a hidden command" },
+  reader: { title: "Bookworm", desc: "Opened one of my books" },
 } as const;
 export type AchievementId = keyof typeof ACHIEVEMENTS;
 

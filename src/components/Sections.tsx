@@ -33,7 +33,7 @@ export function About() {
             <p className="mt-6 leading-relaxed text-muted">{profile.summary}</p>
             <p className="mt-4 leading-relaxed text-muted">
               I enjoy the whole journey: designing the database, writing clean Laravel or FastAPI backends, and building Vue or
-              Flutter interfaces people actually like using. Testing real products taught me to think about edge cases before users find them.
+              Flutter interfaces people actually like using. Testing real products taught me to think about edge cases before users find them. Outside code, I am the author of five Bangla books.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a href={profile.cv.developer} download className="btn-primary">
@@ -378,7 +378,7 @@ export function Skills() {
 /* ---------------- Education & Leadership ---------------- */
 export function Journey() {
   return (
-    <Section id="journey" eyebrow="06 · Beyond code" title="Education & leadership">
+    <Section id="journey" eyebrow="07 · Beyond code" title="Education & leadership">
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         <Reveal>
           <SpotlightCard className="h-full p-6">

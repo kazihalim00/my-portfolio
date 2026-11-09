@@ -21,6 +21,8 @@ export default {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         display: ["var(--font-display)", "var(--font-sans)", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        bn: ["var(--font-bn)", "var(--font-sans)", "sans-serif"],
+        bnserif: ["var(--font-bn-serif)", "var(--font-bn)", "serif"],
       },
       keyframes: {
         float: { "0%,100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-12px)" } },

@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, JetBrains_Mono, Noto_Serif_Bengali, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
+const bnSerif = Noto_Serif_Bengali({ subsets: ["bengali"], weight: ["600", "800"], variable: "--font-bn-serif", display: "swap" });
+const bn = Hind_Siliguri({ subsets: ["bengali"], weight: ["400", "500", "600"], variable: "--font-bn", display: "swap" });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kazi-sunny.vercel.app";
 
@@ -42,7 +44,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${sans.variable} ${display.variable} ${mono.variable} font-sans`}>
+      <body className={`${sans.variable} ${display.variable} ${mono.variable} ${bnSerif.variable} ${bn.variable} font-sans`}>
         <Providers>{children}</Providers>
       </body>
     </html>

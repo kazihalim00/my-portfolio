@@ -86,7 +86,7 @@ export function Guestbook() {
   };
 
   return (
-    <Section id="guestbook" eyebrow="07 · Guestbook" title="Leave a mark" intro="Recruiter, developer or just passing by? Say hi. Your note appears on the wall instantly.">
+    <Section id="guestbook" eyebrow="08 · Guestbook" title="Leave a mark" intro="Recruiter, developer or just passing by? Say hi. Your note appears on the wall instantly.">
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         <Reveal>
           <SpotlightCard className="p-6">
@@ -245,7 +245,7 @@ export function Contact() {
   return (
     <Section
       id="contact"
-      eyebrow="08 · Contact"
+      eyebrow="09 · Contact"
       title={
         <>
           Let&apos;s build <span className="gradient-text">(and test)</span> something.

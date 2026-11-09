@@ -5,10 +5,11 @@ import { education, experience, profile, projects, skills } from "@/lib/data";
 import { useApp } from "../Providers";
 import { useLab } from "./LabState";
 import { BUGS } from "@/lib/bugs";
+import { books, penName } from "@/lib/books";
 
 type Out = { cmd?: string; lines: { t: string; c?: string }[] };
 
-const COMMANDS = ["help", "whoami", "about", "experience", "projects", "skills", "education", "contact", "cv", "github", "linkedin", "bughunt", "stats", "theme", "clear", "date", "echo", "ls", "cat", "sudo", "exit"];
+const COMMANDS = ["help", "whoami", "about", "experience", "projects", "skills", "education", "contact", "cv", "github", "linkedin", "bughunt", "books", "read", "stats", "theme", "clear", "date", "echo", "ls", "cat", "sudo", "exit"];
 
 function goto(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -60,6 +61,8 @@ export function Terminal({ onGoLab }: { onGoLab?: (tab: "hunt" | "tests") => voi
           L("  cv           download my CV"),
           L("  github       open GitHub"),
           L("  linkedin     open LinkedIn"),
+          L("  books        books I have written"),
+          L("  read <book>  open a free book"),
           L("  bughunt      jump into the Bug Hunt game"),
           L("  stats        your Bug Hunt progress"),
           L("  theme        toggle dark/light"),
@@ -104,6 +107,18 @@ export function Terminal({ onGoLab }: { onGoLab?: (tab: "hunt" | "tests") => voi
       case "linkedin":
         window.open(profile.linkedinUrl, "_blank", "noopener");
         lines = [L("Opening LinkedIn…")];
+        break;
+      case "books":
+        lines = [
+          L(`Books by ${penName}:`, "text-emerald-400"),
+          ...books.map((b) => L(`▸ ${b.title} (${b.year})${b.pdf ? "  → read free: /read/" + b.slug : ""}`, b.pdf ? "text-indigo-300" : undefined)),
+        ];
+        break;
+      case "read":
+        if (books.some((b) => b.slug === arg && b.pdf)) {
+          window.location.href = `/read/${arg}`;
+          lines = [L(`Opening ${arg}…`, "text-emerald-400")];
+        } else lines = [L("usage: read pretend | read paper-addopanto", "text-slate-500")];
         break;
       case "bughunt":
         onGoLab?.("hunt");
