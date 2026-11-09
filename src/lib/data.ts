@@ -144,7 +144,10 @@ export const projects: Project[] = [
     tags: ["Next.js", "TypeScript", "Tailwind", "Playwright"],
     category: ["Testing"],
     badge: "You are here",
-    links: [{ label: "Try the lab", href: "#lab" }],
+    links: [
+      { label: "Try the lab", href: "#lab" },
+      { label: "Code", href: "https://github.com/kazihalim00/my-portfolio" },
+    ],
     highlights: ["8 planted bugs", "Cross-browser test runner", "Keyboard-first UX"],
     accent: "from-sky-400 to-indigo-400",
   },
