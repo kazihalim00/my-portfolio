@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 248 250 252;
+  --surface: 255 255 255;
+  --fg: 15 23 42;
+  --muted: 71 85 105;
+  --line: 15 23 42;
+  --brand: 5 150 105;
+  --brand2: 79 70 229;
+  --pass: 22 163 74;
+  --fail: 220 38 38;
+  --warn: 217 119 6;
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: 6 9 20;
+  --surface: 13 18 34;
+  --fg: 226 232 240;
+  --muted: 148 163 184;
+  --line: 226 232 240;
+  --brand: 52 211 153;
+  --brand2: 129 140 248;
+  --pass: 74 222 128;
+  --fail: 248 113 113;
+  --warn: 251 191 36;
+  --glass: rgba(15, 21, 40, 0.55);
+  --glass-border: rgba(226, 232, 240, 0.08);
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgb(var(--brand) / 0.3);
+}
+
+@layer components {
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+  }
+  .gradient-text {
+    background: linear-gradient(90deg, rgb(var(--brand)), rgb(var(--brand2)), rgb(var(--brand)));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 6s linear infinite;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-brand text-white shadow-lg shadow-brand/25 hover:-translate-y-0.5 hover:shadow-brand/40 dark:text-slate-950;
+  }
+  .btn-ghost {
+    @apply btn glass text-fg hover:-translate-y-0.5 hover:border-brand/40;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-line/10 bg-surface/60 px-3 py-1 text-xs font-medium text-muted;
+  }
+  .input {
+    @apply w-full rounded-xl border border-line/15 bg-surface px-3.5 py-2.5 text-sm text-fg placeholder:text-muted/70 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/25;
+  }
+  .card {
+    @apply glass rounded-2xl;
+  }
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(rgb(var(--line) / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--line) / 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--brand) / 0.12), transparent 40%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: -1;
+  pointer-events: none;
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted) / 0.4);
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

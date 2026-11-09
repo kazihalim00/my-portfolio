@@ -1,0 +1,50 @@
+import type { Metadata, Viewport } from "next";
+import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import "./globals.css";
+import { Providers } from "@/components/Providers";
+
+const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kazi-sunny.vercel.app";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: "Kazi Sunny | Full Stack Developer → SDET",
+  description:
+    "Portfolio of Kazi Abdul Halim Sunny: full stack developer (Laravel, Vue, Python) moving into QA and test automation. Hunt bugs, run tests and explore an interactive QA lab.",
+  keywords: ["Kazi Sunny", "SDET", "QA Engineer", "Laravel Developer", "Playwright", "Portfolio", "Sylhet"],
+  authors: [{ name: "Kazi Abdul Halim Sunny" }],
+  openGraph: {
+    title: "Kazi Sunny | Full Stack Developer → SDET",
+    description: "An interactive portfolio you can test: hunt planted bugs, run a Playwright-style test suite and sign the guestbook.",
+    url: siteUrl,
+    siteName: "Kazi Sunny",
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", title: "Kazi Sunny | Full Stack Developer → SDET" },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#060914" },
+    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
+  ],
+};
+
+// Sets the theme class before paint to avoid a flash of the wrong theme.
+const themeScript = `(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t='dark'}document.documentElement.classList.toggle('dark',t==='dark')}catch(e){document.documentElement.classList.add('dark')}})()`;
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className={`${sans.variable} ${display.variable} ${mono.variable} font-sans`}>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}
