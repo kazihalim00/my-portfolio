@@ -14,7 +14,7 @@ export function About() {
       eyebrow="01 · About"
       title={
         <>
-          Developer mindset, <span className="gradient-text">tester instincts</span>.
+          I build <span className="gradient-text">full stack products</span>, end to end.
         </>
       }
     >
@@ -32,8 +32,8 @@ export function About() {
             </div>
             <p className="mt-6 leading-relaxed text-muted">{profile.summary}</p>
             <p className="mt-4 leading-relaxed text-muted">
-              Because I have built Laravel, Vue and Python apps end to end, I know where bugs like to hide: in validation, state,
-              edge cases and the gaps between frontend and API. That is the edge I bring to QA.
+              I enjoy the whole journey: designing the database, writing clean Laravel or FastAPI backends, and building Vue or
+              Flutter interfaces people actually like using. Testing real products taught me to think about edge cases before users find them.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a href={profile.cv.developer} download className="btn-primary">
@@ -314,7 +314,7 @@ function GitHubLive() {
 export function Skills() {
   const [hovered, setHovered] = useState<string | null>(null);
   return (
-    <Section id="skills" eyebrow="05 · Skills" title="Toolbox" intro="What I use today, and what I am learning right now on the road to SDET.">
+    <Section id="skills" eyebrow="04 · Skills" title="Toolbox" intro="What I build with every day, plus the testing skills I bring to every project.">
       <div className="grid gap-6 lg:grid-cols-3">
         {(Object.entries(skills) as [string, string[]][]).map(([group, list], gi) => (
           <Reveal key={group} delay={gi * 0.08}>
@@ -348,7 +348,7 @@ export function Skills() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-warn opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-warn" />
               </span>
-              <h3 className="font-display text-lg font-semibold">Road to SDET</h3>
+              <h3 className="font-display text-lg font-semibold">Currently learning</h3>
             </div>
             <ol className="mt-5 space-y-3">
               {learning.map((l, i) => (

@@ -11,19 +11,19 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kazi-sunny.vercel.a
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Kazi Sunny | Full Stack Developer → SDET",
+  title: "Kazi Sunny | Full Stack Developer (Laravel, Vue, Python)",
   description:
-    "Portfolio of Kazi Abdul Halim Sunny: full stack developer (Laravel, Vue, Python) moving into QA and test automation. Hunt bugs, run tests and explore an interactive QA lab.",
-  keywords: ["Kazi Sunny", "SDET", "QA Engineer", "Laravel Developer", "Playwright", "Portfolio", "Sylhet"],
+    "Portfolio of Kazi Abdul Halim Sunny: full stack developer building with Laravel, Vue.js, Python and Flutter. Explore projects, play dev games and hunt bugs in an interactive lab.",
+  keywords: ["Kazi Sunny", "Full Stack Developer", "Laravel Developer", "Vue.js", "Python", "FastAPI", "QA", "Portfolio", "Sylhet"],
   authors: [{ name: "Kazi Abdul Halim Sunny" }],
   openGraph: {
-    title: "Kazi Sunny | Full Stack Developer → SDET",
-    description: "An interactive portfolio you can test: hunt planted bugs, run a Playwright-style test suite and sign the guestbook.",
+    title: "Kazi Sunny | Full Stack Developer (Laravel, Vue, Python)",
+    description: "Full stack developer (Laravel, Vue, Python). An interactive portfolio: explore projects, play dev games and sign the guestbook.",
     url: siteUrl,
     siteName: "Kazi Sunny",
     type: "website",
   },
-  twitter: { card: "summary_large_image", title: "Kazi Sunny | Full Stack Developer → SDET" },
+  twitter: { card: "summary_large_image", title: "Kazi Sunny | Full Stack Developer (Laravel, Vue, Python)" },
 };
 
 export const viewport: Viewport = {

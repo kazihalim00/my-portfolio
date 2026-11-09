@@ -34,7 +34,7 @@ export function Lab() {
   return (
     <Section
       id="lab"
-      eyebrow="04 · QA Lab"
+      eyebrow="05 · QA Lab"
       title={
         <>
           Don&apos;t just read my CV. <span className="gradient-text">Test me.</span>

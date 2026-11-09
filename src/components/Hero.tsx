@@ -34,22 +34,35 @@ function Typewriter({ words }: { words: string[] }) {
   );
 }
 
-const reportLines = [
-  { name: "builds clean, reliable software", ms: 412 },
-  { name: "writes tests before shipping", ms: 238 },
-  { name: "reports bugs devs can reproduce", ms: 187 },
-  { name: "learns fast (TS + Playwright)", ms: 305 },
-  { name: "is ready for your team", ms: 96 },
+type Tok = [string, string]; // [className, text]
+const K = "text-brand2", S = "text-brand", C = "text-muted", F = "text-warn", P = "";
+const codeLines: Tok[][] = [
+  [[K, "class "], [F, "Developer "], [K, "extends "], [P, "Model"]],
+  [[P, "{"]],
+  [[K, "  public "], [P, "$name = "], [S, "'Kazi Sunny'"], [P, ";"]],
+  [[K, "  public "], [P, "$based = "], [S, "'Sylhet, BD'"], [P, ";"]],
+  [[P, ""]],
+  [[K, "  public function "], [F, "stack"], [P, "(): "], [K, "array"]],
+  [[P, "  {"]],
+  [[K, "    return "], [P, "["], [S, "'Laravel'"], [P, ", "], [S, "'Vue'"], [P, ", "], [S, "'Python'"], [P, ", "], [S, "'Flutter'"], [P, "];"]],
+  [[P, "  }"]],
+  [[P, ""]],
+  [[C, "  // ships features, tests them too"]],
+  [[K, "  public function "], [F, "hire"], [P, "(Team $team): "], [F, "Offer"]],
+  [[P, "  {"]],
+  [[K, "    return "], [P, "$team->"], [F, "welcome"], [P, "($this);"]],
+  [[P, "  }"]],
+  [[P, "}"]],
 ];
 
-function ReportCard() {
+function CodeCard() {
   const [shown, setShown] = useState(0);
   useEffect(() => {
-    if (shown >= reportLines.length) return;
-    const t = setTimeout(() => setShown((s) => s + 1), shown === 0 ? 900 : 550);
+    if (shown >= codeLines.length) return;
+    const t = setTimeout(() => setShown((s) => s + 1), shown === 0 ? 700 : 140);
     return () => clearTimeout(t);
   }, [shown]);
-  const done = shown >= reportLines.length;
+  const done = shown >= codeLines.length;
 
   return (
     <div className="card w-full max-w-md overflow-hidden shadow-2xl shadow-brand/10">
@@ -57,28 +70,26 @@ function ReportCard() {
         <span className="h-3 w-3 rounded-full bg-fail/80" />
         <span className="h-3 w-3 rounded-full bg-warn/80" />
         <span className="h-3 w-3 rounded-full bg-pass/80" />
-        <span className="ml-2 font-mono text-xs text-muted">kazi.spec.ts</span>
+        <span className="ml-2 font-mono text-xs text-muted">app/Models/Developer.php</span>
       </div>
-      <div className="space-y-2 p-4 font-mono text-[12.5px] leading-relaxed sm:text-sm">
-        <p className="text-muted">
-          <span className="text-brand2">$</span> npx playwright test kazi.spec.ts
-        </p>
-        <p className="text-muted">Running 5 tests using 1 worker</p>
-        {reportLines.slice(0, shown).map((l) => (
-          <motion.p key={l.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="flex gap-2">
-            <span className="text-pass">✓</span>
-            <span className="flex-1 truncate">Kazi {l.name}</span>
-            <span className="text-muted">{l.ms}ms</span>
-          </motion.p>
+      <div className="min-h-[380px] p-4 font-mono text-[11.5px] leading-relaxed sm:text-[13px]">
+        {codeLines.slice(0, shown).map((line, i) => (
+          <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} className="flex whitespace-pre">
+            <span className="mr-4 w-5 select-none text-right text-muted/40">{i + 1}</span>
+            <span className="min-w-0 overflow-hidden text-ellipsis whitespace-pre">
+              {line.map(([c, t], j) => (
+                <span key={j} className={c}>
+                  {t}
+                </span>
+              ))}
+            </span>
+          </motion.div>
         ))}
-        {!done && (
-          <p className="flex items-center gap-2 text-muted">
-            <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-brand border-t-transparent" /> running…
-          </p>
-        )}
+        {!done && <span className="ml-9 inline-block h-4 w-[2px] animate-blink bg-brand align-middle" />}
         {done && (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-3 rounded-lg bg-pass/10 px-3 py-2 text-pass">
-            5 passed (1.2s) · 0 failed · 0 flaky
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-3 flex items-center justify-between rounded-lg bg-pass/10 px-3 py-2 text-pass">
+            <span>$ php artisan serve</span>
+            <span>200 OK ✓</span>
           </motion.div>
         )}
       </div>
@@ -111,7 +122,7 @@ export function Hero() {
       <motion.div style={{ x: b1x, y: b1y }} className="pointer-events-none absolute -left-32 top-10 h-[28rem] w-[28rem] rounded-full bg-brand/20 blur-[110px]" />
       <motion.div style={{ x: b2x, y: b2y }} className="pointer-events-none absolute -right-24 bottom-0 h-[30rem] w-[30rem] rounded-full bg-brand2/20 blur-[120px]" />
 
-      <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 pb-16 sm:px-6 lg:grid-cols-[1.15fr_1fr]">
+      <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-12 px-4 pb-16 sm:px-6 lg:grid-cols-[1.15fr_1fr] [&>*]:min-w-0">
         <div>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -122,7 +133,7 @@ export function Hero() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
             </span>
-            Open to Junior SDET / QA / Full Stack roles
+            Open to Full Stack / Laravel developer roles
           </motion.div>
 
           <motion.h1
@@ -133,14 +144,15 @@ export function Hero() {
           >
             Hi, I&apos;m <span className="gradient-text">Kazi Sunny</span>.
             <br />
-            I build software
-            <br className="hidden sm:block" /> and <span className="relative whitespace-nowrap">
-              break it
-              <svg viewBox="0 0 200 12" className="absolute -bottom-1 left-0 w-full text-fail/70" preserveAspectRatio="none" aria-hidden>
+            I build web apps
+            <br className="hidden sm:block" /> that{" "}
+            <span className="relative whitespace-nowrap">
+              don&apos;t break
+              <svg viewBox="0 0 200 12" className="absolute -bottom-1 left-0 w-full text-brand/70" preserveAspectRatio="none" aria-hidden>
                 <path d="M2 8 Q 25 2, 50 8 T 100 8 T 150 8 T 198 8" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
               </svg>
-            </span>{" "}
-            on purpose.
+            </span>
+            .
           </motion.h1>
 
           <motion.p
@@ -158,7 +170,7 @@ export function Hero() {
             transition={{ delay: 0.4 }}
             className="mt-4 max-w-xl text-muted"
           >
-            Laravel &amp; Vue developer with real SaaS testing experience, now moving into test automation. This site is a playground: hunt bugs, run a test suite, or type into the terminal.
+            Full stack developer working with Laravel, Vue.js, Python and Flutter, from database design to polished UI, with a tester&apos;s eye for quality. This site is a playground: explore my projects, play dev games or type into the terminal.
           </motion.p>
 
           <motion.div
@@ -167,11 +179,11 @@ export function Hero() {
             transition={{ delay: 0.5 }}
             className="mt-8 flex flex-wrap gap-3"
           >
-            <a href="#lab" className="btn-primary">
-              <Bug size={16} /> Play Bug Hunt
-            </a>
-            <a href="#projects" className="btn-ghost">
+            <a href="#projects" className="btn-primary">
               <Sparkles size={16} /> See projects
+            </a>
+            <a href="#lab" className="btn-ghost">
+              <Bug size={16} /> Play in the lab
             </a>
             <a href={profile.cv.developer} download className="btn-ghost">
               <Download size={16} /> CV
@@ -207,7 +219,7 @@ export function Hero() {
           className="flex justify-center lg:justify-end"
         >
           <div className="animate-float w-full max-w-md">
-            <ReportCard />
+            <CodeCard />
           </div>
         </motion.div>
       </div>

@@ -4,12 +4,13 @@ export const profile = {
   name: "Kazi Abdul Halim Sunny",
   short: "Kazi Sunny",
   initials: "KS",
-  title: "Full Stack Developer → SDET",
+  title: "Full Stack Developer · Laravel & Vue.js",
   roles: [
     "Full Stack Developer",
-    "Laravel & Vue.js Engineer",
-    "QA & Test Automation (Playwright)",
-    "Future SDET",
+    "Laravel & Vue.js Developer",
+    "Python (FastAPI, Django) Developer",
+    "Flutter App Builder",
+    "QA & Test Automation",
   ],
   location: "Sylhet, Bangladesh",
   email: "kaziabdulhalimsunny01@gmail.com",
@@ -27,7 +28,7 @@ export const profile = {
 export const stats = [
   { value: 3.96, decimals: 2, suffix: "", label: "CGPA out of 4.00" },
   { value: 470, decimals: 0, suffix: "K+", label: "Passages indexed in my thesis search engine" },
-  { value: 3, decimals: 0, suffix: "", label: "Live SaaS products tested at AppifyLab" },
+  { value: 100, decimals: 0, suffix: "+", label: "Routes built in Tazkiyah, my Laravel platform" },
   { value: 200, decimals: 0, suffix: "+", label: "Students reached through workshops" },
 ];
 
@@ -154,16 +155,6 @@ export const projects: Project[] = [
 ];
 
 export const skills = {
-  Testing: [
-    "Manual & exploratory testing",
-    "Test case design",
-    "Bug reporting",
-    "Regression testing",
-    "Cross-browser testing",
-    "API testing (Postman)",
-    "Chrome DevTools",
-    "Trello",
-  ],
   Development: [
     "PHP",
     "Laravel",
@@ -177,6 +168,16 @@ export const skills = {
     "REST APIs",
     "Git",
     "Docker",
+  ],
+  Testing: [
+    "Manual & exploratory testing",
+    "Test case design",
+    "Bug reporting",
+    "Regression testing",
+    "Cross-browser testing",
+    "API testing (Postman)",
+    "Chrome DevTools",
+    "Trello",
   ],
 };
 
@@ -209,8 +210,8 @@ export const sections = [
   { id: "about", label: "About" },
   { id: "experience", label: "Experience" },
   { id: "projects", label: "Projects" },
-  { id: "lab", label: "QA Lab" },
   { id: "skills", label: "Skills" },
+  { id: "lab", label: "QA Lab" },
   { id: "guestbook", label: "Guestbook" },
   { id: "contact", label: "Contact" },
 ];

@@ -10,7 +10,7 @@ test.describe("portfolio", () => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Kazi Sunny/);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Kazi Sunny");
-    await expect(page.getByRole("link", { name: "Play Bug Hunt" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "See projects" })).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });
