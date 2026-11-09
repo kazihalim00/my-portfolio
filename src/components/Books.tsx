@@ -117,7 +117,8 @@ export function Books() {
               <p className="mt-5 font-mono text-xs text-muted">
                 {b.year} · {b.publisher}
               </p>
-              <h4 className="mt-1 font-display text-lg font-semibold">{b.title}</h4>
+              <h4 className="mt-1 font-bnserif text-xl font-bold">{b.title}</h4>
+              {b.titleEn && <p className="text-xs text-muted">{b.titleEn}</p>}
               <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{b.description}</p>
               <div className="mt-4 flex flex-wrap gap-3">
                 {b.links.map((l) => (

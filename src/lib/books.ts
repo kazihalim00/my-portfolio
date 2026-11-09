@@ -6,6 +6,7 @@ export type Book = {
   slug: string;
   title: string; // shown on the card
   titleBn?: string; // Bangla title when known
+  titleEn?: string; // transliteration shown under Bangla titles
   tagline: string;
   publisher: string;
   date: string;
@@ -98,7 +99,8 @@ export const books: Book[] = [
   },
   {
     slug: "omanisha",
-    title: "Omanisha",
+    title: "অমানিশা",
+    titleEn: "Omanisha",
     tagline: "A mystery novel",
     publisher: "Pustok Prokason",
     date: "21 February 2021",
@@ -106,13 +108,14 @@ export const books: Book[] = [
     genre: "Mystery novel",
     description:
       "My third published book: a mystery novel that takes readers on a thrilling journey full of suspense and intrigue, and a step into a new genre.",
-    coverStyle: { from: "#1e1b4b", to: "#4c1d95", ink: "#e9d5ff" },
+    cover: "/books/omanisha-cover.jpg",
     links: [{ label: "Buy on Rokomari", href: "https://www.rokomari.com/book/208108/omanisha" }],
     badge: "Print",
   },
   {
     slug: "ek-tukro-swapno",
-    title: "Ek Tukro Swapno",
+    title: "একটুকরো স্বপ্ন",
+    titleEn: "Ek Tukro Swapno",
     tagline: "A storybook for teenagers",
     publisher: "Pandulipi Prokason",
     date: "12 February 2020",
@@ -120,13 +123,14 @@ export const books: Book[] = [
     genre: "Teen fiction",
     description:
       "My second book: a storybook written for teenagers, published at the Amar Ekushey Boi Mela 2020, with a story that speaks to young readers.",
-    coverStyle: { from: "#0c4a6e", to: "#0e7490", ink: "#cffafe" },
+    cover: "/books/ektukro-cover.jpg",
     links: [{ label: "Buy on Rokomari", href: "https://www.rokomari.com/book/198763/ektokoro-swopno" }],
     badge: "Print",
   },
   {
     slug: "aj-keno-noy",
-    title: "Aj Keno Noy?",
+    title: "আজ কেন নয়?",
+    titleEn: "Aj Keno Noy?",
     tagline: "Self-development for children",
     publisher: "Panjery Publications",
     date: "15 June 2018",
@@ -134,7 +138,7 @@ export const books: Book[] = [
     genre: "Self-development",
     description:
       "My first book: a self-development guide written for children, motivating young readers in their studies and encouraging a positive, proactive mindset.",
-    coverStyle: { from: "#7c2d12", to: "#c2410c", ink: "#ffedd5" },
+    cover: "/books/ajkenonoy-cover.jpg",
     links: [
       {
         label: "See on Facebook",
