@@ -9,7 +9,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", displ
 const bnSerif = Noto_Serif_Bengali({ subsets: ["bengali"], weight: ["600", "800"], variable: "--font-bn-serif", display: "swap" });
 const bn = Hind_Siliguri({ subsets: ["bengali"], weight: ["400", "500", "600"], variable: "--font-bn", display: "swap" });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kazi-sunny.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kazisunny.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
