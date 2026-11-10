@@ -13,19 +13,19 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kazisunny.vercel.ap
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Kazi Sunny | Full Stack Developer (Laravel, Vue, Python)",
+  title: "Kazi Abdul Halim Sunny | Full Stack Developer (Laravel, Vue, Python)",
   description:
     "Portfolio of Kazi Abdul Halim Sunny: full stack developer building with Laravel, Vue.js, Python and Flutter. Explore projects, play dev games and hunt bugs in an interactive lab.",
-  keywords: ["Kazi Sunny", "Full Stack Developer", "Laravel Developer", "Vue.js", "Python", "FastAPI", "QA", "Portfolio", "Sylhet"],
+  keywords: ["Kazi Abdul Halim Sunny", "Kazi Sunny", "Full Stack Developer", "Laravel Developer", "Vue.js", "Python", "FastAPI", "QA", "Portfolio", "Sylhet"],
   authors: [{ name: "Kazi Abdul Halim Sunny" }],
   openGraph: {
-    title: "Kazi Sunny | Full Stack Developer (Laravel, Vue, Python)",
+    title: "Kazi Abdul Halim Sunny | Full Stack Developer (Laravel, Vue, Python)",
     description: "Full stack developer (Laravel, Vue, Python). An interactive portfolio: explore projects, play dev games and sign the guestbook.",
     url: siteUrl,
-    siteName: "Kazi Sunny",
+    siteName: "Kazi Abdul Halim Sunny",
     type: "website",
   },
-  twitter: { card: "summary_large_image", title: "Kazi Sunny | Full Stack Developer (Laravel, Vue, Python)" },
+  twitter: { card: "summary_large_image", title: "Kazi Abdul Halim Sunny | Full Stack Developer (Laravel, Vue, Python)" },
 };
 
 export const viewport: Viewport = {

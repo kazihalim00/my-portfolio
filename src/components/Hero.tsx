@@ -39,7 +39,7 @@ const K = "text-brand2", S = "text-brand", C = "text-muted", F = "text-warn", P 
 const codeLines: Tok[][] = [
   [[K, "class "], [F, "Developer "], [K, "extends "], [P, "Model"]],
   [[P, "{"]],
-  [[K, "  public "], [P, "$name = "], [S, "'Kazi Sunny'"], [P, ";"]],
+  [[K, "  public "], [P, "$name = "], [S, "'Kazi Abdul Halim Sunny'"], [P, ";"]],
   [[K, "  public "], [P, "$based = "], [S, "'Sylhet, BD'"], [P, ";"]],
   [[P, ""]],
   [[K, "  public function "], [F, "stack"], [P, "(): "], [K, "array"]],
@@ -140,9 +140,9 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.7 }}
-            className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-[4.25rem]"
+            className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-[3.6rem]"
           >
-            Hi, I&apos;m <span className="gradient-text">Kazi Sunny</span>.
+            Hi, I&apos;m <span className="gradient-text">Kazi Abdul Halim Sunny</span>.
             <br />
             I build web apps
             <br className="hidden sm:block" /> that{" "}
@@ -218,8 +218,23 @@ export function Hero() {
           style={{ rotateX: cardRX, rotateY: cardRY, transformPerspective: 1000 }}
           className="flex justify-center lg:justify-end"
         >
-          <div className="animate-float w-full max-w-md">
-            <CodeCard />
+          <div className="relative w-full max-w-md">
+            <div className="group relative z-10 mx-auto mb-6 h-40 w-40 lg:-mb-14 sm:h-44 sm:w-44 lg:ml-auto lg:mr-6">
+              <div className="absolute -inset-[5px] animate-[spin_9s_linear_infinite] rounded-full bg-[conic-gradient(from_0deg,rgb(var(--brand)),rgb(var(--brand2)),transparent_60%,rgb(var(--brand)))] opacity-90" />
+              <div className="absolute -inset-6 rounded-full bg-brand/25 blur-2xl transition group-hover:bg-brand/40" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/kazi.jpg"
+                alt="Kazi Abdul Halim Sunny"
+                width={640}
+                height={640}
+                className="relative h-full w-full rounded-full border-4 border-bg object-cover shadow-2xl transition duration-500 group-hover:scale-[1.03]"
+              />
+              <span className="chip absolute -bottom-1 -left-6 border-brand/30 bg-bg/90 text-xs shadow-lg backdrop-blur">👋 That&apos;s me</span>
+            </div>
+            <div className="animate-float">
+              <CodeCard />
+            </div>
           </div>
         </motion.div>
       </div>

@@ -22,9 +22,8 @@ export function About() {
         <Reveal>
           <SpotlightCard className="h-full p-6 sm:p-8">
             <div className="flex items-center gap-4">
-              <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-brand to-brand2 font-display text-2xl font-bold text-white dark:text-slate-950">
-                {profile.initials}
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/kazi.jpg" alt="" width={64} height={64} loading="lazy" className="h-16 w-16 shrink-0 rounded-2xl object-cover ring-2 ring-brand/40" />
               <div>
                 <p className="font-display text-xl font-semibold">{profile.name}</p>
                 <p className="text-sm text-muted">{profile.title}</p>

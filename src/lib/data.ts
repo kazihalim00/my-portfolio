@@ -2,7 +2,7 @@
 
 export const profile = {
   name: "Kazi Abdul Halim Sunny",
-  short: "Kazi Sunny",
+  short: "Kazi Abdul Halim Sunny",
   initials: "KS",
   title: "Full Stack Developer · Laravel & Vue.js",
   roles: [

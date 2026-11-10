@@ -48,7 +48,7 @@ export function Nav() {
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand to-brand2 text-sm text-white dark:text-slate-950">
               {profile.initials}
             </span>
-            <span className="hidden sm:inline">{profile.short}</span>
+            <span className="hidden whitespace-nowrap sm:inline lg:hidden 2xl:inline">{profile.short}</span>
           </a>
 
           <ul className="hidden items-center gap-1 lg:flex">
@@ -56,7 +56,7 @@ export function Nav() {
               <li key={s.id}>
                 <a
                   href={`#${s.id}`}
-                  className={`relative rounded-lg px-3 py-1.5 text-sm transition-colors ${active === s.id ? "text-fg" : "text-muted hover:text-fg"}`}
+                  className={`relative whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm transition-colors xl:px-3 ${active === s.id ? "text-fg" : "text-muted hover:text-fg"}`}
                 >
                   {active === s.id && (
                     <motion.span layoutId="nav-pill" className="absolute inset-0 -z-10 rounded-lg bg-fg/5 ring-1 ring-fg/10" />
@@ -73,7 +73,7 @@ export function Nav() {
               className="hidden items-center gap-2 rounded-xl border border-line/10 px-2.5 py-1.5 text-xs text-muted transition hover:border-brand/40 hover:text-fg sm:flex"
               aria-label="Open command palette"
             >
-              <Command size={13} /> <span className="font-mono">Ctrl K</span>
+              <Command size={13} /> <span className="whitespace-nowrap font-mono">Ctrl K</span>
             </button>
             <button
               onClick={() => setAchievementsOpen(true)}
