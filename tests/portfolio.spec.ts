@@ -197,6 +197,6 @@ test.describe("hire me", () => {
     await expect(hire.getByRole("heading", { level: 2 })).toContainText("hire me");
     const cta = hire.getByRole("link", { name: /send an offer/i });
     await expect(cta).toBeVisible();
-    await expect(cta).toHaveAttribute("href", /^mailto:.+subject=/);
+    await expect(cta).toHaveAttribute("href", /^https:\/\/mail\.google\.com\/mail\/\?view=cm.*&to=.+&su=/);
   });
 });

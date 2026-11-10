@@ -7,11 +7,14 @@ import { LinkedinIcon } from "./icons";
 import { Reveal, Section, SpotlightCard } from "./ui";
 import { profile } from "@/lib/data";
 
-export const hireMailto = `mailto:${profile.email}?subject=${encodeURIComponent(
-  "Job opportunity for Kazi Abdul Halim Sunny"
-)}&body=${encodeURIComponent(
-  "Hi Kazi,\n\nI saw your portfolio and would like to talk about a role.\n\nCompany:\nRole:\nWork mode (on-site / remote / hybrid):\n\nBest,\n"
-)}`;
+const hireSubject = "Job opportunity for Kazi Abdul Halim Sunny";
+const hireBody =
+  "Hi Kazi,\n\nI saw your portfolio and would like to talk about a role.\n\nCompany:\nRole:\nWork mode (on-site / remote / hybrid):\n\nBest,\n";
+export const hireMailto = `mailto:${profile.email}?subject=${encodeURIComponent(hireSubject)}&body=${encodeURIComponent(hireBody)}`;
+/** Gmail web compose works even when the visitor has no desktop mail app set up. */
+export const hireGmail = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(profile.email)}&su=${encodeURIComponent(
+  hireSubject
+)}&body=${encodeURIComponent(hireBody)}`;
 
 const reasons = [
   {
@@ -31,7 +34,7 @@ const reasons = [
   {
     icon: ShieldCheck,
     title: "My code is tested before you see it",
-    body: "At AppifyLab I reproduced and reported real bugs in live SaaS products. Now I write code that is easy to debug and I check edge cases first.",
+    body: "I think like a tester while I code: I check edge cases, validate input and handle errors before I hand a feature over, so fewer bugs reach your users.",
     proof: "This site runs an automated Playwright test suite",
     href: "#lab",
   },
@@ -151,7 +154,9 @@ export function Hire() {
               </ul>
 
               <a
-                href={hireMailto}
+                href={hireGmail}
+                target="_blank"
+                rel="noreferrer"
                 className="group mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-brand2 px-5 py-3.5 font-display text-base font-semibold text-white shadow-lg shadow-brand/30 transition hover:-translate-y-0.5 hover:shadow-brand/50 dark:text-slate-950"
               >
                 <Mail size={18} /> Hire me: send an offer
@@ -167,7 +172,13 @@ export function Hire() {
                   <LinkedinIcon /> LinkedIn
                 </a>
               </div>
-              <p className="mt-4 text-center text-xs text-muted">I reply within a day.</p>
+              <p className="mt-4 text-center text-xs text-muted">
+                Opens Gmail. Prefer your own mail app?{" "}
+                <a href={hireMailto} className="text-brand hover:underline">
+                  Use it here
+                </a>
+                . I reply within a day.
+              </p>
             </div>
           </div>
         </Reveal>
