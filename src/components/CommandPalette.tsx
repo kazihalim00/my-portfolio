@@ -31,8 +31,7 @@ export function CommandPalette() {
       { id: "hunt", label: "Play Bug Hunt", group: "QA Lab", icon: <Bug size={15} />, run: () => openLab("hunt"), keywords: "game bugs" },
       { id: "tests", label: "Run the test suite", group: "QA Lab", icon: <FlaskConical size={15} />, run: () => openLab("tests"), keywords: "playwright" },
       { id: "term", label: "Open terminal", group: "QA Lab", icon: <SquareTerminal size={15} />, run: () => openLab("terminal"), keywords: "cli shell" },
-      { id: "cv", label: "Download Developer CV", group: "Actions", icon: <Download size={15} />, run: () => window.open(profile.cv.developer, "_blank"), keywords: "resume pdf" },
-      { id: "cvqa", label: "Download QA CV", group: "Actions", icon: <Download size={15} />, run: () => window.open(profile.cv.qa, "_blank"), keywords: "resume pdf sdet" },
+      { id: "cv", label: "Download CV", group: "Actions", icon: <Download size={15} />, run: () => window.open(profile.cv.developer, "_blank"), keywords: "resume pdf" },
       {
         id: "copy",
         label: "Copy email address",

@@ -36,10 +36,7 @@ export function About() {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a href={profile.cv.developer} download className="btn-primary">
-                <Download size={15} /> Developer CV
-              </a>
-              <a href={profile.cv.qa} download className="btn-ghost">
-                <Download size={15} /> QA CV
+                <Download size={15} /> Download CV
               </a>
             </div>
           </SpotlightCard>
@@ -106,7 +103,7 @@ export function Experience() {
 }
 
 /* ---------------- Projects ---------------- */
-const filters = ["All", "Laravel", "Python", "AI", "Testing"] as const;
+const filters = ["All", "Laravel", "PHP", "Python", "Flutter", "AI", "JavaScript"] as const;
 
 function ProjectCard({ p }: { p: Project }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -319,7 +316,7 @@ export function Skills() {
           <Reveal key={group} delay={gi * 0.08}>
             <SpotlightCard className="h-full p-6">
               <div className="flex items-center gap-2">
-                {group === "Testing" ? <FlaskConical size={18} className="text-brand" /> : <CodeXml size={18} className="text-brand2" />}
+                {group === "Quality" ? <FlaskConical size={18} className="text-brand" /> : <CodeXml size={18} className="text-brand2" />}
                 <h3 className="font-display text-lg font-semibold">{group}</h3>
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
@@ -347,20 +344,20 @@ export function Skills() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-warn opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-warn" />
               </span>
-              <h3 className="font-display text-lg font-semibold">Currently learning</h3>
+              <h3 className="font-display text-lg font-semibold">Currently building</h3>
             </div>
             <ol className="mt-5 space-y-3">
               {learning.map((l, i) => (
                 <li key={l.name} className="flex items-center gap-3">
                   <span
                     className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-xs ${
-                      l.stage === "Learning now" ? "bg-warn/15 text-warn" : "bg-fg/5 text-muted"
+                      l.stage === "Building now" ? "bg-warn/15 text-warn" : "bg-fg/5 text-muted"
                     }`}
                   >
                     {i + 1}
                   </span>
                   <span className="flex-1 text-sm">{l.name}</span>
-                  <span className={`text-xs ${l.stage === "Learning now" ? "text-warn" : "text-muted"}`}>{l.stage}</span>
+                  <span className={`text-xs ${l.stage === "Building now" ? "text-warn" : "text-muted"}`}>{l.stage}</span>
                 </li>
               ))}
             </ol>

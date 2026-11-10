@@ -94,12 +94,11 @@ export function Terminal({ onGoLab }: { onGoLab?: (tab: "hunt" | "tests") => voi
         lines = [L(`email    ${profile.email}`), L(`linkedin ${profile.linkedinUrl}`), L(`github   ${profile.githubUrl}`), L("or scroll to the contact form ↓", "text-slate-500")];
         break;
       case "cv": {
-        const qa = arg.toLowerCase().includes("qa");
         const a = document.createElement("a");
-        a.href = qa ? profile.cv.qa : profile.cv.developer;
+        a.href = profile.cv.developer;
         a.download = "";
         a.click();
-        lines = [L(`Downloading ${qa ? "QA" : "Developer"} CV… (try 'cv qa' for the QA version)`, "text-emerald-400")];
+        lines = [L("Downloading my CV…", "text-emerald-400")];
         break;
       }
       case "github":

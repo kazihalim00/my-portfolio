@@ -16,7 +16,7 @@ test.describe("portfolio", () => {
   });
 
   test("CV files are downloadable", async ({ request }) => {
-    for (const path of ["/cv/Kazi_Sunny_CV_Developer.pdf", "/cv/Kazi_Sunny_CV_QA.pdf"]) {
+    for (const path of ["/cv/Kazi_Sunny_CV_Developer.pdf"]) {
       const res = await request.get(path);
       expect(res.status()).toBe(200);
       expect(res.headers()["content-type"]).toContain("pdf");
@@ -36,7 +36,7 @@ test.describe("portfolio", () => {
     await page.goto("/");
     const projects = page.locator("#projects");
     await projects.getByRole("tab", { name: "Python" }).click();
-    await expect(projects.getByRole("heading", { name: "Noor-AI" })).toBeVisible();
+    await expect(projects.getByRole("heading", { name: "Noor-AI", exact: true })).toBeVisible();
     await expect(projects.getByRole("heading", { name: "House Rent Management System" })).toHaveCount(0);
   });
 });

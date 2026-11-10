@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Kazi Abdul Halim Sunny | Full Stack Developer (Laravel, Vue, Python)",
   description:
     "Portfolio of Kazi Abdul Halim Sunny: full stack developer building with Laravel, Vue.js, Python and Flutter. Explore projects, play dev games and hunt bugs in an interactive lab.",
-  keywords: ["Kazi Abdul Halim Sunny", "Kazi Sunny", "Full Stack Developer", "Laravel Developer", "Vue.js", "Python", "FastAPI", "QA", "Portfolio", "Sylhet"],
+  keywords: ["Kazi Abdul Halim Sunny", "Kazi Sunny", "Full Stack Developer", "Laravel Developer", "Vue.js", "Python", "FastAPI", "Portfolio", "Sylhet"],
   authors: [{ name: "Kazi Abdul Halim Sunny" }],
   openGraph: {
     title: "Kazi Abdul Halim Sunny | Full Stack Developer (Laravel, Vue, Python)",

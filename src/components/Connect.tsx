@@ -251,7 +251,7 @@ export function Contact() {
           Let&apos;s build <span className="gradient-text">(and test)</span> something.
         </>
       }
-      intro="Hiring for a junior SDET, QA or full stack role? I reply within a day."
+      intro="Hiring for a full stack or Laravel role? I reply within a day."
     >
       <div className="grid gap-6 lg:grid-cols-[1fr_1.3fr]">
         <Reveal>
@@ -278,14 +278,9 @@ export function Contact() {
             <SpotlightCard className="flex items-center gap-3 p-5 text-sm text-muted">
               <MapPin size={16} className="text-brand" /> {profile.location} · open to remote & on-site
             </SpotlightCard>
-            <div className="grid grid-cols-2 gap-3">
-              <a href={profile.cv.developer} download className="btn-ghost">
-                <Download size={15} /> Dev CV
-              </a>
-              <a href={profile.cv.qa} download className="btn-ghost">
-                <Download size={15} /> QA CV
-              </a>
-            </div>
+            <a href={profile.cv.developer} download className="btn-ghost justify-center">
+              <Download size={15} /> Download my CV
+            </a>
           </div>
         </Reveal>
         <Reveal delay={0.08}>
