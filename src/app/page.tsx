@@ -6,6 +6,7 @@ import { Arena } from "@/components/arena/Arena";
 import { Books } from "@/components/Books";
 import { Contact, Footer, Guestbook } from "@/components/Connect";
 import { AchievementsModal, CommandPalette } from "@/components/CommandPalette";
+import { Hire, HireFab } from "@/components/Hire";
 import { ExplorerWatcher } from "@/components/ExplorerWatcher";
 
 export default function Home() {
@@ -22,11 +23,13 @@ export default function Home() {
         <Lab />
         <Books />
         <Journey />
+        <Hire />
         <Guestbook />
         <Contact />
       </main>
       <Footer />
       <ExplorerWatcher />
+      <HireFab />
       <CommandPalette />
       <AchievementsModal />
     </>

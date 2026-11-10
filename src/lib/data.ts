@@ -244,6 +244,7 @@ export const sections = [
   { id: "arena", label: "Dev Arena" },
   { id: "lab", label: "QA Lab" },
   { id: "books", label: "Books" },
+  { id: "hire", label: "Hire me" },
   { id: "guestbook", label: "Guestbook" },
   { id: "contact", label: "Contact" },
 ];

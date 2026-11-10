@@ -188,3 +188,15 @@ test.describe("books", () => {
     }
   });
 });
+
+test.describe("hire me", () => {
+  test("nav button leads to the hire section with an email CTA", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("banner").getByRole("link", { name: "Hire me" }).click();
+    const hire = page.locator("#hire");
+    await expect(hire.getByRole("heading", { level: 2 })).toContainText("hire me");
+    const cta = hire.getByRole("link", { name: /send an offer/i });
+    await expect(cta).toBeVisible();
+    await expect(cta).toHaveAttribute("href", /^mailto:.+subject=/);
+  });
+});

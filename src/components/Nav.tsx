@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
-import { Command, Menu, Moon, Sun, Trophy, X } from "lucide-react";
+import { Briefcase, Command, Menu, Moon, Sun, Trophy, X } from "lucide-react";
 import { sections, profile } from "@/lib/data";
 import { useApp, ACHIEVEMENTS } from "./Providers";
 
@@ -52,7 +52,7 @@ export function Nav() {
           </a>
 
           <ul className="hidden items-center gap-1 lg:flex">
-            {sections.slice(1).map((s) => (
+            {sections.slice(1).filter((s) => s.id !== "hire").map((s) => (
               <li key={s.id}>
                 <a
                   href={`#${s.id}`}
@@ -68,6 +68,12 @@ export function Nav() {
           </ul>
 
           <div className="flex items-center gap-1.5">
+            <a
+              href="#hire"
+              className="flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-gradient-to-r from-brand to-brand2 px-3 py-1.5 text-sm font-semibold text-white shadow-md shadow-brand/30 transition hover:-translate-y-0.5 hover:shadow-brand/50 dark:text-slate-950"
+            >
+              <Briefcase size={14} /> Hire me
+            </a>
             <button
               onClick={() => setPaletteOpen(true)}
               className="hidden items-center gap-2 rounded-xl border border-line/10 px-2.5 py-1.5 text-xs text-muted transition hover:border-brand/40 hover:text-fg sm:flex"

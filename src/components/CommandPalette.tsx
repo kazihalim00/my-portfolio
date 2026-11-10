@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Bug, Copy, Download, FlaskConical, Mail, Moon, Search, SquareTerminal, Trophy, Hash, ExternalLink, Gamepad2 } from "lucide-react";
+import { ArrowRight, Briefcase, Bug, Copy, Download, FlaskConical, Mail, Moon, Search, SquareTerminal, Trophy, Hash, ExternalLink, Gamepad2 } from "lucide-react";
 import { profile, sections } from "@/lib/data";
 import { ACHIEVEMENTS, useApp } from "./Providers";
 import { openLab } from "./lab/Lab";
@@ -31,6 +31,7 @@ export function CommandPalette() {
       { id: "hunt", label: "Play Bug Hunt", group: "QA Lab", icon: <Bug size={15} />, run: () => openLab("hunt"), keywords: "game bugs" },
       { id: "tests", label: "Run the test suite", group: "QA Lab", icon: <FlaskConical size={15} />, run: () => openLab("tests"), keywords: "playwright" },
       { id: "term", label: "Open terminal", group: "QA Lab", icon: <SquareTerminal size={15} />, run: () => openLab("terminal"), keywords: "cli shell" },
+      { id: "hire", label: "Hire Kazi", group: "Actions", icon: <Briefcase size={15} />, run: () => document.getElementById("hire")?.scrollIntoView({ behavior: "smooth" }), keywords: "job offer recruit" },
       { id: "cv", label: "Download CV", group: "Actions", icon: <Download size={15} />, run: () => window.open(profile.cv.developer, "_blank"), keywords: "resume pdf" },
       {
         id: "copy",

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ArrowDown, Download, Mail, MapPin, Sparkles, Gamepad2 } from "lucide-react";
+import { ArrowDown, Download, Mail, MapPin, Sparkles, Gamepad2, Briefcase } from "lucide-react";
 import { GithubIcon as Github, LinkedinIcon as Linkedin } from "./icons";
 import { profile } from "@/lib/data";
 
@@ -179,7 +179,10 @@ export function Hero() {
             transition={{ delay: 0.5 }}
             className="mt-8 flex flex-wrap gap-3"
           >
-            <a href="#projects" className="btn-primary">
+            <a href="#hire" className="btn-primary">
+              <Briefcase size={16} /> Hire me
+            </a>
+            <a href="#projects" className="btn-ghost">
               <Sparkles size={16} /> See projects
             </a>
             <a href="#arena" className="btn-ghost">
