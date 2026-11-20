@@ -189,6 +189,18 @@ test.describe("books", () => {
     await expect(page.locator("[data-reader-ready]")).not.toHaveAttribute("data-page", "1", { timeout: 15_000 });
   });
 
+  test("scroll mode reads top to bottom and keeps the place when switching back", async ({ page }) => {
+    await page.goto("/read/pretend");
+    await expect(page.locator("[data-reader-ready]")).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("button", { name: "Switch to scroll mode" }).click();
+    const sc = page.locator("[data-mode=scroll][data-reader-ready]");
+    await expect(sc).toBeVisible();
+    await sc.evaluate((e) => e.scrollBy(0, 4000));
+    await expect(page.getByTestId("page-indicator")).not.toHaveText(/^০%/);
+    await page.getByRole("button", { name: "Switch to page mode" }).click();
+    await expect(page.locator("[data-page]")).not.toHaveAttribute("data-page", "1", { timeout: 10_000 });
+  });
+
   test("PDFs and covers are served", async ({ request }) => {
     for (const path of ["/books/Pretend-Kazi-Abdul-Halim-Sani.pdf", "/books/Paper-Addopanto-Kazi-Abdul-Halim-Sani.pdf", "/books/pretend-cover.jpg", "/books/text/pretend.json", "/books/text/paper-addopanto.json"]) {
       expect((await request.get(path)).status()).toBe(200);
