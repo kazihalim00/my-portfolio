@@ -182,7 +182,7 @@ test.describe("books", () => {
     await expect(book).not.toHaveAttribute("data-page", "1");
     await page.getByRole("button", { name: "Contents" }).click();
     await page.getByRole("dialog", { name: "Table of contents" }).getByRole("button").nth(4).click();
-    await expect(book.locator(".bk-h1, .bk-h2").filter({ hasText: /লেখকের কথা/ })).toBeInViewport();
+    await expect(book.locator(".bk-h1, .bk-h2").filter({ hasText: /লেখকের কথা/ }).first()).toBeInViewport();
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("readpos:paper-addopanto") || "null"));
     expect(saved?.b).toBeGreaterThan(0);
     await page.reload();
