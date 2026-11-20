@@ -16,6 +16,7 @@ export type Book = {
   cover?: string;
   coverStyle?: { from: string; to: string; ink: string }; // generated cover when no image
   pdf?: string; // free to read on the site
+  text?: string; // reflowable text (JSON blocks) used by the reader
   pages?: number;
   toc?: Chapter[];
   links: { label: string; href: string }[];
@@ -38,6 +39,7 @@ export const books: Book[] = [
       "An X-ray of how sin works: from Iblis's first sin and Shaytan's step-by-step 'algorithm', to the neuroscience of addiction, hidden traps for practicing Muslims, digital-age sins, diseases of the heart and, finally, the road back through sincere tawbah. 18 chapters in 7 parts.",
     cover: "/books/papp-cover.jpg",
     pdf: "/books/Paper-Addopanto-Kazi-Abdul-Halim-Sani.pdf",
+    text: "/books/text/paper-addopanto.json",
     pages: 54,
     badge: "New · Free",
     toc: [
@@ -79,6 +81,7 @@ export const books: Book[] = [
       "A freely available novel about the hidden struggles of today's youth: Jisan's loneliness, the slow slavery of sin behind a mask of pretending, and the hard, hopeful road back. Written to be honest, thoughtful and accessible.",
     cover: "/books/pretend-cover.jpg",
     pdf: "/books/Pretend-Kazi-Abdul-Halim-Sani.pdf",
+    text: "/books/text/pretend.json",
     pages: 56,
     badge: "Free",
     toc: [

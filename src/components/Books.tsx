@@ -37,18 +37,16 @@ export function BookCover({ book, className = "" }: { book: Book; className?: st
   );
 }
 
-function ReadProgress({ slug, pages }: { slug: string; pages?: number }) {
-  const [page, setPage] = useState(0);
-  useEffect(() => setPage(load<number>(`read:${slug}`, 0)), [slug]);
-  if (!page || !pages || page < 2) return null;
+function ReadProgress({ slug }: { slug: string }) {
+  const [pct, setPct] = useState(0);
+  useEffect(() => setPct(load<{ pct?: number } | null>(`readpos:${slug}`, null)?.pct ?? 0), [slug]);
+  if (!pct || pct < 2) return null;
   return (
     <div className="mt-3">
       <div className="h-1 overflow-hidden rounded-full bg-fg/10">
-        <div className="h-full bg-brand" style={{ width: `${Math.min(100, (page / pages) * 100)}%` }} />
+        <div className="h-full bg-brand" style={{ width: `${Math.min(100, pct)}%` }} />
       </div>
-      <p className="mt-1 text-[11px] text-muted">
-        You stopped at page {page} of {pages}
-      </p>
+      <p className="mt-1 text-[11px] text-muted">You have read {Math.min(100, pct)}% · continue where you stopped</p>
     </div>
   );
 }
@@ -91,7 +89,7 @@ export function Books() {
                 <p className="mt-3 text-xs text-muted">
                   {b.pages} pages · {b.date}
                 </p>
-                <ReadProgress slug={b.slug} pages={b.pages} />
+                <ReadProgress slug={b.slug} />
                 <div className="mt-auto flex flex-wrap gap-2 pt-5">
                   <Link href={`/read/${b.slug}`} className="btn-primary">
                     <BookOpen size={15} /> Read free

@@ -4,7 +4,7 @@ import { books, getBook, penName } from "@/lib/books";
 import { Reader } from "@/components/Reader";
 
 export function generateStaticParams() {
-  return books.filter((b) => b.pdf).map((b) => ({ slug: b.slug }));
+  return books.filter((b) => b.text).map((b) => ({ slug: b.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -21,6 +21,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function ReadPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const book = getBook(slug);
-  if (!book || !book.pdf) notFound();
+  if (!book || !book.text) notFound();
   return <Reader book={book} />;
 }

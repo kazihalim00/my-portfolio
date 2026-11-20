@@ -170,20 +170,27 @@ test.describe("guestbook", () => {
 });
 
 test.describe("books", () => {
-  test("free book opens in the reader and remembers the page", async ({ page }) => {
+  test("free book opens as a paginated book and remembers the place", async ({ page }) => {
     await page.goto("/");
     await page.locator("#books").getByRole("link", { name: "Read free" }).first().click();
     await expect(page).toHaveURL(/\/read\/paper-addopanto/);
-    await expect(page.locator("#page-1 canvas")).toBeVisible({ timeout: 15_000 });
+    const book = page.locator("[data-reader-ready]");
+    await expect(book).toBeVisible({ timeout: 15_000 });
+    await expect(book).toHaveAttribute("data-page", "1");
+    await expect(book.getByRole("img", { name: /cover/ })).toBeVisible();
+    await page.getByRole("button", { name: "Next page" }).last().click();
+    await expect(book).not.toHaveAttribute("data-page", "1");
     await page.getByRole("button", { name: "Contents" }).click();
-    await page.getByRole("dialog", { name: "Table of contents" }).getByText("লেখকের কথা").click();
-    await expect(page.getByLabel("Go to page")).toHaveAttribute("placeholder", "8", { timeout: 10_000 });
-    const saved = await page.evaluate(() => localStorage.getItem("read:paper-addopanto"));
-    expect(Number(saved)).toBeGreaterThanOrEqual(7);
+    await page.getByRole("dialog", { name: "Table of contents" }).getByRole("button").nth(4).click();
+    await expect(book.locator(".bk-h1, .bk-h2").filter({ hasText: /লেখকের কথা/ })).toBeInViewport();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("readpos:paper-addopanto") || "null"));
+    expect(saved?.b).toBeGreaterThan(0);
+    await page.reload();
+    await expect(page.locator("[data-reader-ready]")).not.toHaveAttribute("data-page", "1", { timeout: 15_000 });
   });
 
   test("PDFs and covers are served", async ({ request }) => {
-    for (const path of ["/books/Pretend-Kazi-Abdul-Halim-Sani.pdf", "/books/Paper-Addopanto-Kazi-Abdul-Halim-Sani.pdf", "/books/pretend-cover.jpg", "/pdf.worker.min.mjs"]) {
+    for (const path of ["/books/Pretend-Kazi-Abdul-Halim-Sani.pdf", "/books/Paper-Addopanto-Kazi-Abdul-Halim-Sani.pdf", "/books/pretend-cover.jpg", "/books/text/pretend.json", "/books/text/paper-addopanto.json"]) {
       expect((await request.get(path)).status()).toBe(200);
     }
   });
