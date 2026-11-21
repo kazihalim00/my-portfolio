@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createContext, memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Download, List, Maximize, Minus, Plus, ScrollText, Share2, Type, Volume2, VolumeX, X } from "lucide-react";
 import { penName, type Book } from "@/lib/books";
@@ -9,7 +9,8 @@ import { load, save, useApp } from "./Providers";
 
 /* ------------------------------------------------------------------ */
 /* Book text: blocks extracted from the PDF (scripts/book-text).        */
-/* run = [text, flags]  flags: 1 = bold, 2 = emphasis                   */
+/* run = [text, flags]  flags: 1 = bold, 2 = emphasis, 4 = footnote    */
+/* (a footnote run holds the note text; its marker sits at that spot)  */
 /* ------------------------------------------------------------------ */
 type Run = [string, number];
 type BlockType = "h1" | "h2" | "h3" | "p" | "li" | "quote" | "note" | "right" | "front" | "front-h1" | "front-h2";
@@ -24,7 +25,7 @@ const THEMES: Record<Theme, { label: string; bg: string; paper: string; back: st
 };
 
 const bnDigits = (n: number) => String(n).replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
-const plain = (b: Block) => b.runs.map((r) => r[0]).join("");
+const plain = (b: Block) => b.runs.filter((r) => !(r[1] & 4)).map((r) => r[0]).join("");
 const FLIP_MS = 700;
 
 type SavedPos = { b: number; pct: number };
@@ -83,11 +84,33 @@ function playPageTurn(ctxRef: { current: AudioContext | null }) {
 }
 type Flip = { dir: "next" | "prev"; from: number; to: number; id: number };
 
-function Runs({ runs }: { runs: Run[] }) {
+/** Footnote numbers, keyed "block:run". Numbering starts again with each chapter. */
+const FnNums = createContext<Map<string, string>>(new Map());
+function footnotes(body: Block[]) {
+  const nums = new Map<string, string>();
+  const text = new Map<string, string>();
+  let n = 0;
+  body.forEach((b, i) => {
+    if (b.type === "h1" || b.type === "h2") n = 0;
+    b.runs.forEach((r, j) => {
+      if (!(r[1] & 4)) return;
+      nums.set(`${i}:${j}`, bnDigits(++n));
+      text.set(`${i}:${j}`, r[0]);
+    });
+  });
+  return { nums, text };
+}
+
+function Runs({ runs, bi }: { runs: Run[]; bi?: number }) {
+  const nums = useContext(FnNums);
   return (
     <>
       {runs.map(([t, f], i) =>
-        f & 1 ? (
+        f & 4 ? (
+          <sup key={i} className="bk-fn" data-fn={`${bi}:${i}`}>
+            {nums.get(`${bi}:${i}`)}
+          </sup>
+        ) : f & 1 ? (
           <strong key={i} className={f & 2 ? "bk-em" : undefined}>
             {t}
           </strong>
@@ -221,7 +244,7 @@ function Imprint({ book, blocks, pageH }: { book: Book; blocks: Block[]; pageH?:
     );
   return (
     <section data-b={0} className="bk-imprint" style={pageH ? { minHeight: pageH } : undefined}>
-      <div>
+      <div className="bk-imp-body">
         <p className="bk-imp-title">{pre[0] ?? book.title}</p>
         <p className="bk-imp-sub">{pre[1] ?? book.tagline}</p>
         <span className="bk-imp-rule" aria-hidden />
@@ -277,19 +300,19 @@ function BlockView({ b, i, prev }: { b: Block; i: number; prev?: Block }) {
     case "h3":
       return (
         <h4 {...common} className="bk-h3">
-          <Runs runs={b.runs} />
+          <Runs runs={b.runs} bi={i} />
         </h4>
       );
     case "li":
       return (
         <p {...common} className="bk-li">
-          <Runs runs={b.runs} />
+          <Runs runs={b.runs} bi={i} />
         </p>
       );
     case "quote":
       return (
         <blockquote {...common} className={isHead(prev) ? "bk-epigraph" : "bk-quote"}>
-          <Runs runs={b.runs} />
+          <Runs runs={b.runs} bi={i} />
         </blockquote>
       );
     case "note": {
@@ -297,26 +320,26 @@ function BlockView({ b, i, prev }: { b: Block; i: number; prev?: Block }) {
       const cls = /[:：]$/.test(t) && t.length < 40 ? "bk-note bk-notes-head" : /^\[/.test(t) ? "bk-note bk-note-ref" : t.startsWith(penName) ? "bk-right bk-sign" : "bk-note";
       return (
         <p {...common} className={cls}>
-          <Runs runs={b.runs} />
+          <Runs runs={b.runs} bi={i} />
         </p>
       );
     }
     case "right":
       return (
         <p {...common} className="bk-right">
-          <Runs runs={b.runs} />
+          <Runs runs={b.runs} bi={i} />
         </p>
       );
     case "front":
       return (
         <p {...common} className="bk-front">
-          <Runs runs={b.runs} />
+          <Runs runs={b.runs} bi={i} />
         </p>
       );
     default:
       return (
         <p {...common} className={prev?.type === "p" ? "bk-p" : "bk-p bk-first"}>
-          <Runs runs={b.runs} />
+          <Runs runs={b.runs} bi={i} />
         </p>
       );
   }
@@ -327,19 +350,17 @@ const BookFlow = memo(function BookFlow({
   book,
   body,
   pageH,
-  pages,
   print,
   onShare,
 }: {
   book: Book;
   body: Block[];
   pageH?: number;
-  pages?: number[];
   print?: boolean;
   onShare: () => void;
 }) {
   const S = useMemo(() => analyse(body), [body]);
-  const pg = (i: number) => (pages?.[i] === undefined ? "" : bnDigits(pages[i] + 1));
+  const fn = useMemo(() => footnotes(body).nums, [body]);
   const full = pageH ? { height: pageH } : undefined;
   const out: React.ReactNode[] = [];
   for (let i = S.mainStart; i < body.length; i++) {
@@ -364,7 +385,7 @@ const BookFlow = memo(function BookFlow({
           {keep &&
             intro.map((x, j) => (
               <p key={j} data-b={i + 1 + j} className="bk-part-intro">
-                <Runs runs={x.runs} />
+                <Runs runs={x.runs} bi={i + 1 + j} />
               </p>
             ))}
         </section>
@@ -375,7 +396,7 @@ const BookFlow = memo(function BookFlow({
     out.push(<BlockView key={i} b={b} i={i} prev={body[i - 1]} />);
   }
   return (
-    <>
+    <FnNums.Provider value={fn}>
       <figure className="bk-cover" style={full}>
         {book.cover && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -400,7 +421,7 @@ const BookFlow = memo(function BookFlow({
           </span>
           {body.slice(S.ded[0] + 1, S.ded[1]).map((x, j) => (
             <p key={j} data-b={S.ded![0] + 1 + j} className="bk-ded-p">
-              <Runs runs={x.runs} />
+              <Runs runs={x.runs} bi={S.ded![0] + 1 + j} />
             </p>
           ))}
         </section>
@@ -415,7 +436,7 @@ const BookFlow = memo(function BookFlow({
                 <span className="bk-toc-row">
                   <span className="bk-toc-t">{e.title}</span>
                   <span className="bk-toc-dots" aria-hidden />
-                  <span className="bk-toc-n">{pg(e.i)}</span>
+                  <span className="bk-toc-n" data-pg={e.i} />
                 </span>
               </div>
             ) : (
@@ -424,7 +445,7 @@ const BookFlow = memo(function BookFlow({
                   {e.num && <span className="bk-toc-num">{e.num}</span>}
                   <span className="bk-toc-t">{e.title}</span>
                   <span className="bk-toc-dots" aria-hidden />
-                  <span className="bk-toc-n">{pg(e.i)}</span>
+                  <span className="bk-toc-n" data-pg={e.i} />
                 </span>
                 {e.desc && <span className="bk-toc-desc">{e.desc}</span>}
               </div>
@@ -441,7 +462,7 @@ const BookFlow = memo(function BookFlow({
           <p className="bk-end-title">পড়ার জন্য ধন্যবাদ</p>
           <p className="bk-end-text">ভালো লাগলে বন্ধুদের সাথে শেয়ার করুন, আর গেস্টবুকে আপনার মতামত লিখে যান।</p>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <button onClick={onShare} className="rounded-lg bg-emerald-600 px-4 py-2 font-sans text-sm font-medium text-white">
+            <button onClick={onShare} data-act="share" className="rounded-lg bg-emerald-600 px-4 py-2 font-sans text-sm font-medium text-white">
               Share
             </button>
             <Link href="/#guestbook" className="rounded-lg border border-current/20 px-4 py-2 font-sans text-sm font-medium">
@@ -461,9 +482,186 @@ const BookFlow = memo(function BookFlow({
           <p>সমাপ্ত</p>
         </section>
       )}
-    </>
+    </FnNums.Provider>
   );
 });
+
+/* ------------------------------------------------------------------ */
+/* Typesetter: footnotes at the foot of the page they belong to.        */
+/* Works on a copy of the flow: for each page that has note markers it  */
+/* measures the notes, then ends the text early (splitting a paragraph  */
+/* at a line start) so the notes fit underneath.                        */
+/* ------------------------------------------------------------------ */
+type Note = { num: string; text: string };
+type Typeset = { node: HTMLElement; n: number; blockCol: number[]; notes: Record<number, Note[]> };
+const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+const noteHtml = (ns: Note[]) => ns.map((x) => `<p class="bk-fnp"><span class="bk-fnn">${esc(x.num)}</span>${esc(x.text)}</p>`).join("");
+
+function typeset(src: HTMLElement, g: Geo, fnText: Map<string, string>): Typeset {
+  const host = src.parentElement!;
+  const sand = src.cloneNode(true) as HTMLElement;
+  Object.assign(sand.style, { position: "absolute", left: "0px", top: "0px", transform: "none", visibility: "hidden" });
+  host.appendChild(sand);
+  const meas = document.createElement("div");
+  meas.className = "bk-fnzone";
+  meas.style.cssText = `position:absolute;left:0;top:0;width:${g.colW}px;visibility:hidden`;
+  host.appendChild(meas);
+
+  const b0 = () => sand.getBoundingClientRect();
+  const colOf = (r: DOMRect, o: DOMRect) => Math.max(0, Math.floor((r.left - o.left + 4) / g.stride));
+  const count = () => Math.max(1, Math.round((sand.scrollWidth + g.gap) / g.stride));
+  const hOf = (ns: Note[]) => {
+    if (!ns.length) return 0;
+    meas.innerHTML = noteHtml(ns);
+    return Math.ceil(meas.getBoundingClientRect().height);
+  };
+  const cap = g.contentH * 0.55;
+  const capped = (ns: Note[]) => {
+    const out: Note[] = [];
+    for (const x of ns) {
+      if (out.length && hOf([...out, x]) > cap) break;
+      out.push(x);
+    }
+    return out;
+  };
+  // markers on column p, in reading order
+  let sups: HTMLElement[] = [];
+  const markersOn = (p: number): Note[] => {
+    const o = b0();
+    return sups
+      .filter((el) => {
+        const r = el.getClientRects()[0];
+        return r && colOf(r, o) === p;
+      })
+      .map((el) => ({ num: el.textContent ?? "", text: fnText.get(el.dataset.fn ?? "") ?? "", key: el.dataset.fn } as Note));
+  };
+
+  /** End column p's text above `limit` px. */
+  const breakAt = (p: number, limit: number): (() => void) | undefined => {
+    const o = b0();
+    const yMax = o.top + limit + 0.5;
+    for (const c of Array.from(sand.children) as HTMLElement[]) {
+      const frs = Array.from(c.getClientRects()).filter((r) => r.width > 0 || r.height > 0);
+      if (!frs.length) continue;
+      const on = frs.filter((r) => colOf(r, o) === p);
+      if (!on.length) {
+        if (colOf(frs[0], o) > p) return; // column p ends above the limit
+        continue;
+      }
+      if (on[on.length - 1].bottom <= yMax) continue;
+      const startsHere = colOf(frs[0], o) === p;
+      const pushWhole = () => {
+        if (!startsHere || on[0].top <= o.top + 1) return undefined;
+        const old = c.style.breakBefore;
+        c.style.breakBefore = "column";
+        return () => {
+          c.style.breakBefore = old;
+        };
+      };
+      if (on[0].top >= yMax - 1 || (c.tagName !== "P" && c.tagName !== "BLOCKQUOTE")) return pushWhole();
+      // split the paragraph at the first line that does not fit
+      const nodes: Text[] = [];
+      const tw = document.createTreeWalker(c, NodeFilter.SHOW_TEXT);
+      while (tw.nextNode()) nodes.push(tw.currentNode as Text);
+      // every place a line can start: skip vowel signs, marks and letters joined by a hasant
+      const cand: [Text, number][] = [];
+      const joins = /[\u0981-\u0983\u09BC\u09BE-\u09CD\u09D7\u09E2\u09E3\u200C\u200D\s]/;
+      let prev = " ";
+      for (const t of nodes) {
+        const d = t.data;
+        for (let k = 0; k < d.length; k++) {
+          if (!joins.test(d[k]) && prev !== "\u09CD") cand.push([t, k]);
+          prev = d[k];
+        }
+      }
+      const rg = document.createRange();
+      const fits = ([t, k]: [Text, number]) => {
+        rg.setStart(t, k);
+        rg.setEnd(t, Math.min(t.data.length, k + 1));
+        const r = rg.getClientRects()[0];
+        if (!r) return true;
+        const cc = colOf(r, o);
+        return cc < p || (cc === p && r.bottom <= yMax);
+      };
+      let lo = 0;
+      let hi = cand.length; // first index that does not fit
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (fits(cand[mid])) lo = mid + 1;
+        else hi = mid;
+      }
+      if (hi >= cand.length) return;
+      if (hi === 0) return pushWhole();
+      const [t, k] = cand[hi];
+      rg.setStart(t, k);
+      rg.setEnd(c, c.childNodes.length);
+      const rest = rg.extractContents();
+      const c2 = c.cloneNode(false) as HTMLElement;
+      c2.removeAttribute("data-b");
+      c2.classList.add("bk-cont");
+      c2.style.breakBefore = "column";
+      c2.appendChild(rest);
+      c.after(c2);
+      c.classList.add("bk-split");
+      return () => {
+        c.classList.remove("bk-split");
+        while (c2.firstChild) c.appendChild(c2.firstChild);
+        c2.remove();
+      };
+    }
+  };
+
+  const notes: Record<number, Note[]> = {};
+  if (fnText.size) {
+    sups = Array.from(sand.querySelectorAll<HTMLElement>("sup[data-fn]"));
+    let carry: Note[] = [];
+    for (let p = 0; p < count() && p < 3000; p++) {
+      const here0 = [...carry, ...markersOn(p)];
+      if (!here0.length) continue;
+      const accept = (list: Note[]) => {
+        const show = capped(list);
+        if (show.length) notes[p] = show;
+        carry = list.slice(show.length);
+      };
+      let here = here0;
+      for (let it = 0; it < 3; it++) {
+        const undo = breakAt(p, g.contentH - hOf(capped(here)));
+        const after = [...carry, ...markersOn(p)];
+        if (after.length === here.length) {
+          accept(after);
+          break;
+        }
+        undo?.();
+        if (after.length > here.length || it === 2) {
+          // a smaller space pulls the marker back: keep the first, safe layout
+          breakAt(p, g.contentH - hOf(capped(here0)));
+          accept([...carry, ...markersOn(p)]);
+          break;
+        }
+        // a marker moved to the next page: try again with less room for notes
+        here = after;
+        if (!here.length) break;
+      }
+    }
+  }
+
+  const o = b0();
+  const blockCol: number[] = [];
+  sand.querySelectorAll<HTMLElement>("[data-b]").forEach((node) => {
+    const i = Number(node.dataset.b);
+    if (blockCol[i] !== undefined) return;
+    const r = node.getClientRects()[0];
+    if (r) blockCol[i] = colOf(r, o);
+  });
+  sand.querySelectorAll<HTMLElement>("[data-pg]").forEach((el) => {
+    const c = blockCol[Number(el.dataset.pg)];
+    el.textContent = c === undefined ? "" : bnDigits(c + 1);
+  });
+  const n = count();
+  sand.remove();
+  meas.remove();
+  return { node: sand, n, blockCol, notes };
+}
 
 type Geo = { pageW: number; paperH: number; px: number; pt: number; pb: number; colW: number; gap: number; stride: number; contentH: number; small: boolean };
 
@@ -479,11 +677,17 @@ function PageFace({
   paper,
   edge,
   shift = 0,
+  tpl,
+  notes,
+  live,
 }: {
+  live?: boolean;
   shift?: number;
+  tpl?: HTMLElement | null;
+  notes?: Note[];
   col: number | null;
   geo: Geo;
-  flow: React.ReactNode;
+  flow?: React.ReactNode;
   head?: string | null;
   num?: string | null;
   contentRef?: React.Ref<HTMLDivElement>;
@@ -492,18 +696,26 @@ function PageFace({
   edge?: "left" | "right";
 }) {
   const { pageW, paperH, px, pt, colW, gap, stride, contentH, small } = geo;
+  const fillRef = useRef<HTMLDivElement>(null);
+  // pages show a copy of the typeset flow (the measured copy keeps the React tree)
+  useLayoutEffect(() => {
+    const el = fillRef.current;
+    if (!el || contentRef) return;
+    if (!tpl) el.replaceChildren();
+    else el.replaceChildren(...Array.from((tpl.cloneNode(true) as HTMLElement).childNodes));
+  }, [tpl, contentRef]);
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ width: pageW, height: paperH, background: paper }}>
       {head && (
-        <div className="pointer-events-none absolute truncate text-center font-bn text-[11px] tracking-wide" style={{ left: px + shift, width: colW, top: small ? 12 : 20, color: muted }}>
+        <div className="pointer-events-none absolute truncate text-center font-bn text-[11px] tracking-wide" style={{ left: px + shift, width: colW, top: small ? 16 : 32, color: muted }}>
           {head}
         </div>
       )}
       <div className="absolute" style={{ left: px + shift, top: pt, width: colW, height: contentH, visibility: col === null ? "hidden" : undefined }}>
         <div
-          ref={contentRef}
+          ref={contentRef ?? fillRef}
           className="bk-content"
-          aria-hidden={contentRef ? undefined : true}
+          aria-hidden={live ? undefined : true}
           style={{
             columnWidth: colW,
             columnGap: gap,
@@ -514,11 +726,14 @@ function PageFace({
             transform: `translateX(${-(col ?? 0) * stride}px)`,
           }}
         >
-          {flow}
+          {contentRef ? flow : null}
         </div>
       </div>
+      {notes && notes.length > 0 && col !== null && (
+        <div className="bk-fnzone absolute" style={{ left: px + shift, width: colW, bottom: paperH - pt - contentH }} dangerouslySetInnerHTML={{ __html: noteHtml(notes) }} />
+      )}
       {num && (
-        <div className="pointer-events-none absolute text-center font-bn text-xs" style={{ left: px + shift, width: colW, bottom: small ? 12 : 18, color: muted }}>
+        <div className="pointer-events-none absolute text-center font-bn text-xs" style={{ left: px + shift, width: colW, bottom: small ? 16 : 28, color: muted }}>
           {num}
         </div>
       )}
@@ -556,6 +771,8 @@ export function Reader({ book }: { book: Book }) {
   const [scrollPage, setScrollPage] = useState(0);
   const [sound, setSound] = useState(true);
   const [print, setPrint] = useState(false);
+  const [tpl, setTpl] = useState<HTMLElement | null>(null);
+  const [pageNotes, setPageNotes] = useState<Record<number, Note[]>>({});
   const soundRef = useRef(true);
   const audioRef = useRef<AudioContext | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -571,6 +788,7 @@ export function Reader({ book }: { book: Book }) {
   const castShadowRef = useRef<HTMLDivElement>(null);
 
   const body = useMemo(() => (blocks ?? []).filter((b) => b.type !== "front-h1" && b.type !== "front-h2"), [blocks]);
+  const fnText = useMemo(() => footnotes(body).text, [body]);
 
   /* ---------- load text + preferences ---------- */
   useEffect(() => {
@@ -618,8 +836,8 @@ export function Reader({ book }: { book: Book }) {
   const paperH = Math.max(320, H - 2 * vm);
   const pageW = Math.floor(cols === 2 ? Math.min(540, (W - 2 * m) / 2, paperH / 1.32) : Math.min(660, W - 2 * m, small ? 9999 : paperH / 1.25));
   const px = small ? 22 : cols === 2 ? 44 : 52;
-  const pt = small ? 34 : 50;
-  const pb = small ? 38 : 50;
+  const pt = small ? 46 : 78;
+  const pb = small ? 46 : 68;
   const colW = Math.max(120, pageW - 2 * px);
   const gap = 2 * px;
   const stride = colW + gap;
@@ -644,14 +862,11 @@ export function Reader({ book }: { book: Book }) {
   const relayout = useCallback(() => {
     const el = contentRef.current;
     if (!el || !blocks) return;
-    const n = Math.max(1, Math.round((el.scrollWidth + G.gap) / G.stride));
-    const cr = el.getBoundingClientRect();
-    const cols_: number[] = [];
-    el.querySelectorAll<HTMLElement>("[data-b]").forEach((node) => {
-      const r = node.getClientRects()[0];
-      if (!r) return;
-      cols_[Number(node.dataset.b)] = Math.max(0, Math.floor((r.left - cr.left + 4) / G.stride));
-    });
+    const t = typeset(el, G, fnText);
+    const n = t.n;
+    const cols_ = t.blockCol;
+    setTpl(t.node);
+    setPageNotes(t.notes);
     setNPages(n);
     setBlockCol(cols_);
     const a = anchorRef.current < 0 ? 0 : cols_[anchorRef.current] ?? 0;
@@ -665,7 +880,8 @@ export function Reader({ book }: { book: Book }) {
       });
     }
     setReady(true);
-  }, [blocks, G.gap, G.stride, C, mode, pitch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocks, G.gap, G.stride, G.colW, G.contentH, C, mode, pitch, fnText]);
 
   useLayoutEffect(() => {
     if (!blocks || !W) return;
@@ -883,7 +1099,7 @@ export function Reader({ book }: { book: Book }) {
   } as React.CSSProperties;
 
   // one memoized flow per copy so page turns never re-render the text
-  const flowPaged = useMemo(() => (blocks ? <BookFlow book={book} body={body} pageH={G.contentH} pages={blockCol} print={print} onShare={share} /> : null), [blocks, book, body, G.contentH, blockCol, print, share]);
+  const flowPaged = useMemo(() => (blocks ? <BookFlow book={book} body={body} pageH={G.contentH} print={print} onShare={share} /> : null), [blocks, book, body, G.contentH, print, share]);
 
   /* ---------- which page sits where (page mode) ---------- */
   // Static pages under the turning leaf, and the leaf's two faces.
@@ -921,7 +1137,7 @@ export function Reader({ book }: { book: Book }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={book.cover} alt="" className="h-full w-full object-cover" />
               ) : (
-                <PageFace col={p} geo={sgeo} flow={flowPaged} head={headFor(p)} num={numFor(p)} muted={T.muted} paper="#fff" shift={(p + 1) % 2 ? 8 : -8} />
+                <PageFace col={p} geo={sgeo} tpl={tpl} notes={pageNotes[p]} head={headFor(p)} num={numFor(p)} muted={T.muted} paper="#fff" shift={(p + 1) % 2 ? 8 : -8} />
               )}
             </div>
           ))}
@@ -929,7 +1145,13 @@ export function Reader({ book }: { book: Book }) {
     );
 
   return (
-    <div className="flex h-[100svh] flex-col overflow-hidden" style={{ background: T.bg }}>
+    <div
+      className="flex h-[100svh] flex-col overflow-hidden"
+      style={{ background: T.bg }}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest?.("[data-act=share]")) share();
+      }}
+    >
       {/* Top bar */}
       <header className={`relative z-20 border-b ${bar} backdrop-blur`}>
         <div className="mx-auto flex max-w-6xl items-center gap-1.5 px-2 py-1.5 sm:gap-2 sm:px-3 sm:py-2">
@@ -1079,16 +1301,21 @@ export function Reader({ book }: { book: Book }) {
               className="pointer-events-none absolute inset-0 rounded-[3px]"
               style={{ boxShadow: dark ? "0 10px 40px rgba(0,0,0,.6)" : "0 2px 6px rgba(0,0,0,.08), 0 18px 50px rgba(60,40,10,.18), 3px 3px 0 -1px " + T.back + ", 6px 6px 0 -2px " + T.back }}
             />
+            {/* hidden copy used only to measure and typeset */}
+            <div aria-hidden className="pointer-events-none absolute left-0 top-0 overflow-hidden" style={{ visibility: "hidden", width: pageW, height: paperH }}>
+              <PageFace col={0} geo={geo} flow={flowPaged} contentRef={contentRef} muted={T.muted} paper={T.paper} />
+            </div>
             {/* static pages */}
             {base.map((p, k) => (
               <div key={`base${k}`} className="absolute top-0 overflow-hidden" style={{ left: k * pageW, width: pageW, height: paperH }}>
                 <PageFace
                   col={vis(p)}
                   geo={geo}
-                  flow={flowPaged}
+                  tpl={tpl}
+                  notes={pageNotes[vis(p) ?? -1]}
+                  live={k === 0}
                   head={headFor(vis(p), k === 0)}
                   num={numFor(vis(p))}
-                  contentRef={k === 0 ? contentRef : undefined}
                   muted={T.muted}
                   paper={T.paper}
                   edge={cols === 2 ? (k === 0 ? "left" : "right") : undefined}
@@ -1115,7 +1342,8 @@ export function Reader({ book }: { book: Book }) {
                 <PageFace
                   col={leaf ? vis(leaf.front) : null}
                   geo={geo}
-                  flow={flowPaged}
+                  tpl={tpl}
+                  notes={leaf ? pageNotes[vis(leaf.front) ?? -1] : undefined}
                   head={leaf ? headFor(vis(leaf.front), leaf.side === "left") : null}
                   num={leaf ? numFor(vis(leaf.front)) : null}
                   muted={T.muted}
@@ -1134,7 +1362,8 @@ export function Reader({ book }: { book: Book }) {
                   <PageFace
                     col={vis(leaf.back)}
                     geo={geo}
-                    flow={flowPaged}
+                    tpl={tpl}
+                    notes={pageNotes[vis(leaf.back) ?? -1]}
                     head={headFor(vis(leaf.back), leaf.side === "right")}
                     num={numFor(vis(leaf.back))}
                     muted={T.muted}
@@ -1208,10 +1437,10 @@ export function Reader({ book }: { book: Book }) {
                   }}
                 >
                   {ready && Math.abs(p - scrollPage) <= 2 ? (
-                    <PageFace col={p} geo={sgeo} flow={flowPaged} head={headFor(p, false)} num={numFor(p)} muted={T.muted} paper={T.paper} />
+                    <PageFace col={p} geo={sgeo} tpl={tpl} notes={pageNotes[p]} head={headFor(p, false)} num={numFor(p)} muted={T.muted} paper={T.paper} />
                   ) : (
                     numFor(p) && (
-                      <div className="absolute inset-x-0 text-center font-bn text-xs" style={{ bottom: small ? 12 : 18, color: T.muted }}>
+                      <div className="absolute inset-x-0 text-center font-bn text-xs" style={{ bottom: small ? 16 : 28, color: T.muted }}>
                         {numFor(p)}
                       </div>
                     )
