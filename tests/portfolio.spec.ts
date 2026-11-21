@@ -202,10 +202,26 @@ test.describe("books", () => {
     await page.getByRole("button", { name: "Switch to scroll mode" }).click();
     const sc = page.locator("[data-mode=scroll][data-reader-ready]");
     await expect(sc).toBeVisible();
+    // scroll mode shows real, separate pages with page numbers
+    await expect(sc.locator(".bk-content").nth(1)).toBeVisible();
     await sc.evaluate((e) => e.scrollBy(0, 4000));
-    await expect(page.getByTestId("page-indicator")).not.toHaveText(/^০%/);
+    await expect(sc).not.toHaveAttribute("data-page", "1");
+    await expect(page.getByTestId("page-indicator")).toContainText("পৃষ্ঠা");
     await page.getByRole("button", { name: "Switch to page mode" }).click();
     await expect(page.locator("[data-page]")).not.toHaveAttribute("data-page", "1", { timeout: 10_000 });
+  });
+
+  test("page-turn sound can be switched off and stays off", async ({ page }) => {
+    await page.goto("/read/pretend");
+    await expect(page.locator("[data-reader-ready]")).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("button", { name: "Reading settings" }).click();
+    const sw = page.getByRole("switch", { name: "Page-turn sound" });
+    await expect(sw).toHaveAttribute("aria-checked", "true");
+    await sw.click();
+    await expect(sw).toHaveAttribute("aria-checked", "false");
+    await page.reload();
+    await page.getByRole("button", { name: "Reading settings" }).click();
+    await expect(page.getByRole("switch", { name: "Page-turn sound" })).toHaveAttribute("aria-checked", "false");
   });
 
   test("PDFs and covers are served", async ({ request }) => {

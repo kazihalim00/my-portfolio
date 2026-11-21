@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Download, List, Maximize, Minus, Plus, ScrollText, Share2, Type, X } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Download, List, Maximize, Minus, Plus, ScrollText, Share2, Type, Volume2, VolumeX, X } from "lucide-react";
 import { penName, type Book } from "@/lib/books";
 import { load, save, useApp } from "./Providers";
 
@@ -28,6 +28,59 @@ const plain = (b: Block) => b.runs.map((r) => r[0]).join("");
 const FLIP_MS = 700;
 
 type SavedPos = { b: number; pct: number };
+
+/** A soft paper page-turn, synthesized with Web Audio so there is no sound file to load. */
+function playPageTurn(ctxRef: { current: AudioContext | null }) {
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ac = (ctxRef.current ??= new Ctx());
+    if (ac.state === "suspended") void ac.resume();
+    const t = ac.currentTime + 0.01;
+    const noise = (dur: number, shape: (x: number) => number) => {
+      const len = Math.floor(ac.sampleRate * dur);
+      const buf = ac.createBuffer(1, len, ac.sampleRate);
+      const d = buf.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < len; i++) {
+        // slightly "crinkly" noise: random grains with a gentle low-pass
+        const grain = Math.random() < 0.06 ? (Math.random() * 2 - 1) * 1.6 : Math.random() * 2 - 1;
+        last = last * 0.35 + grain * 0.65;
+        d[i] = last * shape(i / len);
+      }
+      const src = ac.createBufferSource();
+      src.buffer = buf;
+      return src;
+    };
+    // the sweep of the sheet through the air
+    const sweep = noise(0.42, (x) => Math.pow(Math.sin(Math.PI * Math.min(1, x * 1.15)), 1.6));
+    const bp = ac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 0.7;
+    bp.frequency.setValueAtTime(1400, t);
+    bp.frequency.exponentialRampToValueAtTime(4200, t + 0.16);
+    bp.frequency.exponentialRampToValueAtTime(1600, t + 0.42);
+    const g1 = ac.createGain();
+    g1.gain.setValueAtTime(0.0001, t);
+    g1.gain.exponentialRampToValueAtTime(0.32, t + 0.06);
+    g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+    sweep.connect(bp).connect(g1).connect(ac.destination);
+    sweep.start(t);
+    // the page settling on the others
+    const settle = noise(0.08, (x) => 1 - x);
+    const lp = ac.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 900;
+    const g2 = ac.createGain();
+    g2.gain.setValueAtTime(0.0001, t + 0.36);
+    g2.gain.exponentialRampToValueAtTime(0.22, t + 0.38);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.46);
+    settle.connect(lp).connect(g2).connect(ac.destination);
+    settle.start(t + 0.36);
+  } catch {
+    /* audio is optional */
+  }
+}
 type Flip = { dir: "next" | "prev"; from: number; to: number; id: number };
 
 function Runs({ runs }: { runs: Run[] }) {
@@ -256,8 +309,10 @@ export function Reader({ book }: { book: Book }) {
   const [tocOpen, setTocOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resumed, setResumed] = useState(false);
-  const [scrollPct, setScrollPct] = useState(0);
-  const [scrollAnchor, setScrollAnchor] = useState(-1);
+  const [scrollPage, setScrollPage] = useState(0);
+  const [sound, setSound] = useState(true);
+  const soundRef = useRef(true);
+  const audioRef = useRef<AudioContext | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -279,6 +334,8 @@ export function Reader({ book }: { book: Book }) {
     setTheme(load<Theme>("reader:theme", "light"));
     setMode(load<Mode>("reader:mode", "page"));
     setFontSize(load<number>("reader:font", 18));
+    soundRef.current = load<boolean>("reader:sound", true);
+    setSound(soundRef.current);
     const saved = load<SavedPos | null>(`readpos:${book.slug}`, null);
     if (saved && saved.b > 2) {
       anchorRef.current = saved.b;
@@ -321,72 +378,68 @@ export function Reader({ book }: { book: Book }) {
   const contentH = Math.max(160, paperH - pt - pb);
   const geo: Geo = { pageW, paperH, px, pt, pb, colW, gap, stride, contentH, small };
 
+  // scroll mode: the same pages, stacked one under another like a PDF
+  const sPageW = Math.floor(Math.min(small ? 9999 : 640, W - 2 * m));
+  const sPaperH = Math.round(sPageW * (small ? 1.55 : 1.4));
+  const sColW = Math.max(120, sPageW - 2 * px);
+  const sgeo: Geo = { pageW: sPageW, paperH: sPaperH, px, pt, pb, colW: sColW, gap, stride: sColW + gap, contentH: Math.max(160, sPaperH - pt - pb), small };
+  const gapY = small ? 14 : 28;
+  const pitch = sPaperH + gapY;
+  const G = mode === "page" ? geo : sgeo;
+  const C = mode === "page" ? cols : 1;
+
   /* ---------- paginate (page mode) ---------- */
   const relayout = useCallback(() => {
     const el = contentRef.current;
     if (!el || !blocks) return;
-    const n = Math.max(1, Math.round((el.scrollWidth + gap) / stride));
+    const n = Math.max(1, Math.round((el.scrollWidth + G.gap) / G.stride));
     const cr = el.getBoundingClientRect();
     const cols_: number[] = [];
     el.querySelectorAll<HTMLElement>("[data-b]").forEach((node) => {
       const r = node.getClientRects()[0];
       if (!r) return;
-      cols_[Number(node.dataset.b)] = Math.max(0, Math.floor((r.left - cr.left + 4) / stride));
+      cols_[Number(node.dataset.b)] = Math.max(0, Math.floor((r.left - cr.left + 4) / G.stride));
     });
     setNPages(n);
     setBlockCol(cols_);
     const a = anchorRef.current < 0 ? 0 : cols_[anchorRef.current] ?? 0;
-    const p = Math.min(Math.floor(a / cols) * cols, Math.max(0, Math.floor((n - 1) / cols) * cols));
+    const p = Math.min(Math.floor(a / C) * C, Math.max(0, Math.floor((n - 1) / C) * C));
     setFlip(null);
     setPage(p);
+    if (mode === "scroll") {
+      setScrollPage(p);
+      requestAnimationFrame(() => {
+        if (scrollRef.current) scrollRef.current.scrollTop = p * pitch;
+      });
+    }
     setReady(true);
-  }, [blocks, gap, stride, cols]);
+  }, [blocks, G.gap, G.stride, C, mode, pitch]);
 
   useLayoutEffect(() => {
-    if (!blocks || !W || mode !== "page") return;
+    if (!blocks || !W) return;
     let raf = requestAnimationFrame(() => relayout());
     document.fonts?.ready.then(() => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => relayout());
     });
     return () => cancelAnimationFrame(raf);
-  }, [blocks, W, H, fontSize, cols, mode, relayout]);
+  }, [blocks, W, H, fontSize, C, mode, relayout]);
 
-  /* ---------- scroll mode: restore + track position ---------- */
-  useLayoutEffect(() => {
-    if (!blocks || mode !== "scroll") return;
-    const sc = scrollRef.current;
-    if (!sc) return;
-    const restore = () => {
-      const a = anchorRef.current;
-      const node = a >= 0 ? sc.querySelector<HTMLElement>(`[data-b="${a}"]`) : null;
-      sc.scrollTop = node ? node.offsetTop - 24 : 0;
-      setReady(true);
-    };
-    const raf = requestAnimationFrame(restore);
-    return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [blocks, mode]);
-
+  /* ---------- scroll mode: track which page is on screen ---------- */
   const onScroll = useCallback(() => {
     const sc = scrollRef.current;
-    if (!sc) return;
-    const max = sc.scrollHeight - sc.clientHeight;
-    const pct = max > 0 ? Math.round((sc.scrollTop / max) * 100) : 0;
-    let a = -1;
-    const nodes = sc.querySelectorAll<HTMLElement>("[data-b]");
-    for (const n of nodes) {
-      if (n.offsetTop + n.offsetHeight > sc.scrollTop + 30) {
-        a = Number(n.dataset.b);
-        break;
-      }
-    }
-    if (sc.scrollTop < 40) a = -1;
-    anchorRef.current = a;
-    setScrollAnchor(a);
-    setScrollPct(pct);
-    save(`readpos:${book.slug}`, { b: a, pct });
-  }, [book.slug]);
+    if (!sc || !ready) return;
+    const p = Math.max(0, Math.min(nPages - 1, Math.floor((sc.scrollTop + sc.clientHeight * 0.35 - gapY) / pitch)));
+    setScrollPage((old) => {
+      if (old === p) return old;
+      let a = -1;
+      for (let i = 0; i < blockCol.length; i++) if ((blockCol[i] ?? 0) <= p) a = i;
+      if (sc.scrollTop < 40) a = -1;
+      anchorRef.current = a;
+      save(`readpos:${book.slug}`, { b: a, pct: Math.min(100, Math.round(((p + 1) / nPages) * 100)) });
+      return p;
+    });
+  }, [book.slug, blockCol, gapY, nPages, pitch, ready]);
 
   /* ---------- turning pages ---------- */
   const lastPageStart = Math.max(0, Math.floor((nPages - 1) / cols) * cols);
@@ -414,6 +467,7 @@ export function Reader({ book }: { book: Book }) {
       const target = Math.max(0, Math.min(lastPageStart, page + (dir === "next" ? cols : -cols)));
       if (target === page) return;
       if (!reduceMotion.current) setFlip({ dir, from: page, to: target, id: ++flipId.current });
+      if (soundRef.current) playPageTurn(audioRef);
       commit(target);
     },
     [page, cols, lastPageStart, commit]
@@ -478,6 +532,12 @@ export function Reader({ book }: { book: Book }) {
     setTheme(t);
     save("reader:theme", t);
   };
+  const toggleSound = () => {
+    soundRef.current = !soundRef.current;
+    setSound(soundRef.current);
+    save("reader:sound", soundRef.current);
+    if (soundRef.current) playPageTurn(audioRef);
+  };
   const changeMode = (md: Mode) => {
     if (md === mode) return;
     setReady(false);
@@ -509,7 +569,7 @@ export function Reader({ book }: { book: Book }) {
     [body]
   );
   const chapterAt = useCallback((p: number) => [...toc].reverse().find((c) => (blockCol[c.i] ?? Infinity) <= p), [toc, blockCol]);
-  const chapter = mode === "page" ? chapterAt(page) : [...toc].reverse().find((c) => c.i <= scrollAnchor);
+  const chapter = chapterAt(mode === "page" ? page : scrollPage);
   const firstTextCol = useMemo(() => {
     const i = body.findIndex((b) => b.type !== "front");
     return i < 0 ? 2 : blockCol[i] ?? 2;
@@ -518,9 +578,8 @@ export function Reader({ book }: { book: Book }) {
 
   const jumpToBlock = (i: number) => {
     if (mode === "page") return goTo(i < 0 ? 0 : blockCol[i] ?? 0);
-    const sc = scrollRef.current;
-    const node = i >= 0 ? sc?.querySelector<HTMLElement>(`[data-b="${i}"]`) : null;
-    sc?.scrollTo({ top: node ? node.offsetTop - 24 : 0, behavior: "smooth" });
+    const p = i < 0 ? 0 : blockCol[i] ?? 0;
+    scrollRef.current?.scrollTo({ top: p * pitch });
   };
 
   const T = THEMES[theme];
@@ -530,7 +589,7 @@ export function Reader({ book }: { book: Book }) {
 
   const headFor = (p: number | null, left: boolean) => {
     if (p === null || p < firstTextCol || p >= nPages || openingCols.has(p)) return null;
-    return cols === 2 && left ? book.title : chapterAt(p)?.title ?? book.title;
+    return C === 2 && left ? book.title : chapterAt(p)?.title ?? book.title;
   };
   const numFor = (p: number | null) => (p === null || p === 0 || p >= nPages ? null : bnDigits(p + 1));
 
@@ -567,8 +626,7 @@ export function Reader({ book }: { book: Book }) {
   } as React.CSSProperties;
 
   // one memoized flow per copy so page turns never re-render the text
-  const flowPaged = useMemo(() => (blocks ? <BookFlow book={book} body={body} pageH={contentH} onShare={share} /> : null), [blocks, book, body, contentH, share]);
-  const flowScroll = useMemo(() => (blocks ? <BookFlow book={book} body={body} onShare={share} /> : null), [blocks, book, body, share]);
+  const flowPaged = useMemo(() => (blocks ? <BookFlow book={book} body={body} pageH={G.contentH} onShare={share} /> : null), [blocks, book, body, G.contentH, share]);
 
   /* ---------- which page sits where (page mode) ---------- */
   // Static pages under the turning leaf, and the leaf's two faces.
@@ -645,6 +703,16 @@ export function Reader({ book }: { book: Book }) {
                       </button>
                     ))}
                   </div>
+                  <p className="mt-4 text-[11px] font-medium uppercase tracking-wider opacity-60">Page-turn sound</p>
+                  <button
+                    onClick={toggleSound}
+                    role="switch"
+                    aria-checked={sound}
+                    aria-label="Page-turn sound"
+                    className={`mt-2 flex w-full items-center justify-center gap-2 rounded-lg border px-2 py-2 font-bn text-xs ${sound ? "border-emerald-500 bg-emerald-500/10 text-emerald-600" : "border-current/15"}`}
+                  >
+                    {sound ? <Volume2 size={14} /> : <VolumeX size={14} />} {sound ? "শব্দ চালু" : "শব্দ বন্ধ"}
+                  </button>
                   <p className="mt-4 text-[11px] font-medium uppercase tracking-wider opacity-60">Text size</p>
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <button onClick={() => changeFont(-1)} className="grid h-9 w-12 place-items-center rounded-lg border border-current/15 hover:bg-black/5" aria-label="Smaller text">
@@ -692,7 +760,7 @@ export function Reader({ book }: { book: Book }) {
           </button>
         </div>
         <div className="h-0.5 bg-black/5">
-          <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${mode === "page" ? (shownTo / nPages) * 100 : scrollPct}%` }} />
+          <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${((mode === "page" ? shownTo : scrollPage + 1) / nPages) * 100}%` }} />
         </div>
       </header>
 
@@ -835,21 +903,45 @@ export function Reader({ book }: { book: Book }) {
           </div>
         )}
 
-        {/* ---------------- scroll mode ---------------- */}
-        {blocks && mode === "scroll" && (
-          <div ref={scrollRef} onScroll={onScroll} className="absolute inset-0 overflow-y-auto overscroll-contain" data-reader-ready={ready ? "true" : undefined} data-mode="scroll">
-            <article
-              className="bk-content bk-scroll mx-auto my-3 rounded-[3px] sm:my-8"
-              style={{
-                ...cssVars,
-                maxWidth: 720,
-                background: T.paper,
-                padding: small ? "28px 20px 40px" : "56px 64px 64px",
-                boxShadow: dark ? "0 10px 40px rgba(0,0,0,.6)" : "0 2px 6px rgba(0,0,0,.08), 0 18px 50px rgba(60,40,10,.14)",
-              }}
-            >
-              {flowScroll}
-            </article>
+        {/* ---------------- scroll mode: pages stacked like a PDF ---------------- */}
+        {blocks && W > 0 && mode === "scroll" && (
+          <div
+            ref={scrollRef}
+            onScroll={onScroll}
+            className="absolute inset-0 overflow-y-auto overflow-x-hidden overscroll-contain"
+            data-reader-ready={ready ? "true" : undefined}
+            data-mode="scroll"
+            data-page={scrollPage + 1}
+            style={{ ...cssVars, color: T.ink }}
+          >
+            {/* hidden copy used only to measure where pages break */}
+            <div aria-hidden className="pointer-events-none absolute left-0 top-0" style={{ visibility: "hidden", width: sPageW, height: sPaperH }}>
+              <PageFace col={0} geo={sgeo} flow={flowPaged} contentRef={contentRef} muted={T.muted} paper={T.paper} />
+            </div>
+            <div className="flex flex-col items-center" style={{ padding: `${gapY}px 0`, gap: gapY }}>
+              {Array.from({ length: nPages }, (_, p) => (
+                <div
+                  key={p}
+                  className="relative shrink-0 overflow-hidden rounded-[3px]"
+                  style={{
+                    width: sPageW,
+                    height: sPaperH,
+                    background: T.paper,
+                    boxShadow: dark ? "0 8px 30px rgba(0,0,0,.55)" : "0 1px 3px rgba(0,0,0,.08), 0 10px 30px rgba(60,40,10,.16)",
+                  }}
+                >
+                  {ready && Math.abs(p - scrollPage) <= 2 ? (
+                    <PageFace col={p} geo={sgeo} flow={flowPaged} head={headFor(p, false)} num={numFor(p)} muted={T.muted} paper={T.paper} />
+                  ) : (
+                    p > 0 && (
+                      <div className="absolute inset-x-0 text-center font-bn text-xs" style={{ bottom: small ? 12 : 18, color: T.muted }}>
+                        {bnDigits(p + 1)}
+                      </div>
+                    )
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -898,23 +990,20 @@ export function Reader({ book }: { book: Book }) {
           <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2">
             <ScrollText size={16} className="shrink-0 opacity-60" />
             <label htmlFor="scroll-slider" className="sr-only">
-              Reading position
+              Go to page
             </label>
             <input
               id="scroll-slider"
               type="range"
-              min={0}
-              max={100}
+              min={1}
+              max={Math.max(1, nPages)}
               step={1}
-              value={scrollPct}
-              onChange={(e) => {
-                const sc = scrollRef.current;
-                if (sc) sc.scrollTop = (Number(e.target.value) / 100) * (sc.scrollHeight - sc.clientHeight);
-              }}
+              value={Math.min(nPages, scrollPage + 1)}
+              onChange={(e) => scrollRef.current?.scrollTo({ top: (Number(e.target.value) - 1) * pitch })}
               className="h-1 min-w-0 flex-1 cursor-pointer accent-emerald-600"
             />
-            <span className="shrink-0 font-bn text-xs tabular-nums opacity-80" data-testid="page-indicator">
-              {bnDigits(scrollPct)}% পড়া হয়েছে
+            <span className="shrink-0 font-bn text-xs tabular-nums opacity-80" aria-live="polite" data-testid="page-indicator">
+              পৃষ্ঠা {bnDigits(Math.min(nPages, scrollPage + 1))} / {bnDigits(nPages)}
             </span>
           </div>
         )}
@@ -922,7 +1011,7 @@ export function Reader({ book }: { book: Book }) {
 
       {/* Resumed banner */}
       <AnimatePresence>
-        {ready && resumed && (mode === "page" ? page > 0 : scrollAnchor > 0) && (
+        {ready && resumed && (mode === "page" ? page > 0 : scrollPage > 0) && (
           <motion.div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -981,7 +1070,7 @@ export function Reader({ book }: { book: Book }) {
                         className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left font-bn text-sm ${active ? "bg-emerald-50 text-emerald-700" : "hover:bg-black/5"} ${c.level === "h1" ? "font-semibold" : "pl-6"}`}
                       >
                         <span className="flex-1">{c.title}</span>
-                        {mode === "page" && <span className="font-bn text-xs opacity-60">{bnDigits(p + 1)}</span>}
+                        <span className="font-bn text-xs opacity-60">{bnDigits(p + 1)}</span>
                       </button>
                     </li>
                   );
