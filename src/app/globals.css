@@ -258,3 +258,11 @@ body {
 .bk-fnzone::before { content: ""; position: absolute; top: 0.45em; left: 0; width: 38%; height: 1px; background: color-mix(in srgb, var(--bk-ink) 45%, transparent); }
 .bk-fnp { margin: 0 0 0.3em; padding-left: 1.5em; text-indent: -1.5em; }
 .bk-fnn { display: inline-block; min-width: 1.5em; text-indent: 0; font-weight: 700; color: var(--bk-accent); }
+
+/* ---- book list (author page) ---- */
+.bk-row { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 0.55em; margin: 0; padding: 0.45em 0.2em; border-bottom: 1px dotted color-mix(in srgb, var(--bk-muted) 45%, transparent); text-align: left; }
+.bk-row:first-of-type, :not(.bk-row) + .bk-row { margin-top: 0.8em; border-top: 1px dotted color-mix(in srgb, var(--bk-muted) 45%, transparent); }
+:is(.bk-row) + :not(.bk-row) { margin-top: 0.9em; }
+.bk-row-n { min-width: 1.7em; font-weight: 700; color: var(--bk-accent); }
+.bk-row-t { font-weight: 700; }
+.bk-row-k { font-size: 0.88em; color: var(--bk-muted); }

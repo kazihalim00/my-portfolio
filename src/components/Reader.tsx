@@ -13,7 +13,7 @@ import { load, save, useApp } from "./Providers";
 /* (a footnote run holds the note text; its marker sits at that spot)  */
 /* ------------------------------------------------------------------ */
 type Run = [string, number];
-type BlockType = "h1" | "h2" | "h3" | "p" | "li" | "quote" | "note" | "right" | "front" | "front-h1" | "front-h2";
+type BlockType = "h1" | "h2" | "h3" | "p" | "li" | "quote" | "note" | "right" | "front" | "front-h1" | "front-h2" | "row";
 type Block = { type: BlockType; label?: string; runs: Run[] };
 type Mode = "page" | "scroll";
 
@@ -321,6 +321,17 @@ function BlockView({ b, i, prev }: { b: Block; i: number; prev?: Block }) {
       return (
         <p {...common} className={cls}>
           <Runs runs={b.runs} bi={i} />
+        </p>
+      );
+    }
+    case "row": {
+      // a list entry: number, title in bold, kind in brackets
+      const [n, title, kind] = b.runs.map((r) => r[0]);
+      return (
+        <p {...common} className="bk-row">
+          <span className="bk-row-n">{n}</span>
+          <strong className="bk-row-t">{title}</strong>
+          {kind && <span className="bk-row-k">{kind}</span>}
         </p>
       );
     }
