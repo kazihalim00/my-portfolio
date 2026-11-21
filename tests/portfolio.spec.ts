@@ -182,7 +182,14 @@ test.describe("books", () => {
     await expect(book).not.toHaveAttribute("data-page", "1");
     await page.getByRole("button", { name: "Contents" }).click();
     await page.getByRole("dialog", { name: "Table of contents" }).getByRole("button").nth(4).click();
-    await expect(book.locator(".bk-h1, .bk-h2").filter({ hasText: /লেখকের কথা/ }).first()).toBeInViewport();
+    // The 3D page faces confuse IntersectionObserver, so check the heading's box against the window instead.
+    const heading = book.locator(".bk-h1, .bk-h2").filter({ hasText: /লেখকের কথা/, visible: true }).first();
+    await expect(heading).toBeVisible();
+    await expect.poll(async () => {
+      const box = await heading.boundingBox();
+      const vw = page.viewportSize()!.width;
+      return !!box && box.x >= 0 && box.x + box.width <= vw;
+    }).toBe(true);
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("readpos:paper-addopanto") || "null"));
     expect(saved?.b).toBeGreaterThan(0);
     await page.reload();
