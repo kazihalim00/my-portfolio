@@ -266,3 +266,8 @@ body {
 .bk-row-n { min-width: 1.7em; font-weight: 700; color: var(--bk-accent); }
 .bk-row-t { font-weight: 700; }
 .bk-row-k { font-size: 0.88em; color: var(--bk-muted); }
+.bk-ded-name { margin: 0.4em 0 0.9em; text-align: center; line-height: 1.5; }
+.bk-ded-rel { display: block; font-size: 0.85em; color: var(--bk-muted); }
+.bk-ded-name strong { display: block; font-size: 1.28em; font-weight: 700; color: var(--bk-accent); }
+.bk-ded-and { display: flex; align-items: center; justify-content: center; gap: 0.7em; margin: 1.1em 0; font-size: 0.9em; color: var(--bk-muted); }
+.bk-ded-and::before, .bk-ded-and::after { content: ""; width: 2.2em; height: 1px; background: var(--bk-accent); opacity: 0.6; }

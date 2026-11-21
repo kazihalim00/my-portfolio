@@ -430,11 +430,30 @@ const BookFlow = memo(function BookFlow({
           <span className="bk-orn" aria-hidden>
             ❦
           </span>
-          {body.slice(S.ded[0] + 1, S.ded[1]).map((x, j) => (
-            <p key={j} data-b={S.ded![0] + 1 + j} className="bk-ded-p">
-              <Runs runs={x.runs} bi={S.ded![0] + 1 + j} />
-            </p>
-          ))}
+          {body.slice(S.ded[0] + 1, S.ded[1]).map((x, j) => {
+            const t = plain(x).trim();
+            const bi = S.ded![0] + 1 + j;
+            // "প্রিয় নানা, শেরুজ্জামান আহমেদ।" -> a small relation line and the name in bold
+            const m = t.length < 50 ? t.match(/^([^,]{2,20}),\s*(.+?)[।.]?$/) : null;
+            if (m)
+              return (
+                <p key={j} data-b={bi} className="bk-ded-name">
+                  <span className="bk-ded-rel">{m[1]}</span>
+                  <strong>{m[2]}</strong>
+                </p>
+              );
+            if (t === "এবং")
+              return (
+                <p key={j} data-b={bi} className="bk-ded-and">
+                  {t}
+                </p>
+              );
+            return (
+              <p key={j} data-b={bi} className="bk-ded-p">
+                <Runs runs={x.runs} bi={bi} />
+              </p>
+            );
+          })}
         </section>
       )}
       {S.entries.length > 2 && (
@@ -601,7 +620,7 @@ function typeset(src: HTMLElement, g: Geo, fnText: Map<string, string>): Typeset
         if (fits(cand[mid])) lo = mid + 1;
         else hi = mid;
       }
-      if (hi >= cand.length) return;
+      if (hi >= cand.length) continue; // only the line spacing crosses the limit
       if (hi === 0) return pushWhole();
       const [t, k] = cand[hi];
       rg.setStart(t, k);
@@ -897,11 +916,17 @@ export function Reader({ book }: { book: Book }) {
   useLayoutEffect(() => {
     if (!blocks || !W) return;
     let raf = requestAnimationFrame(() => relayout());
-    document.fonts?.ready.then(() => {
+    const again = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => relayout());
-    });
-    return () => cancelAnimationFrame(raf);
+    };
+    // line breaks are baked into the typeset copy, so set it again whenever a web font arrives late
+    document.fonts?.ready.then(again);
+    document.fonts?.addEventListener?.("loadingdone", again);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.fonts?.removeEventListener?.("loadingdone", again);
+    };
   }, [blocks, W, H, fontSize, C, mode, relayout]);
 
   /* ---------- scroll mode: track which page is on screen ---------- */
