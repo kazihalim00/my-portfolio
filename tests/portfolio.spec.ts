@@ -225,7 +225,7 @@ test.describe("books", () => {
   });
 
   test("PDFs and covers are served", async ({ request }) => {
-    for (const path of ["/books/Pretend-Kazi-Abdul-Halim-Sani.pdf", "/books/Paper-Addopanto-Kazi-Abdul-Halim-Sani.pdf", "/books/pretend-cover.jpg", "/books/text/pretend.json", "/books/text/paper-addopanto.json"]) {
+    for (const path of ["/books/Pretend-Kazi-Abdul-Halim-Sunny.pdf", "/books/Paper-Addopanto-Kazi-Abdul-Halim-Sunny.pdf", "/books/pretend-cover.jpg", "/books/text/pretend.json", "/books/text/paper-addopanto.json"]) {
       expect((await request.get(path)).status()).toBe(200);
     }
   });

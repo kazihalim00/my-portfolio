@@ -38,7 +38,7 @@ export const books: Book[] = [
     description:
       "An X-ray of how sin works: from Iblis's first sin and Shaytan's step-by-step 'algorithm', to the neuroscience of addiction, hidden traps for practicing Muslims, digital-age sins, diseases of the heart and, finally, the road back through sincere tawbah. 18 chapters in 7 parts.",
     cover: "/books/papp-cover.jpg",
-    pdf: "/books/Paper-Addopanto-Kazi-Abdul-Halim-Sani.pdf",
+    pdf: "/books/Paper-Addopanto-Kazi-Abdul-Halim-Sunny.pdf",
     text: "/books/text/paper-addopanto.json",
     pages: 54,
     badge: "New · Free",
@@ -80,7 +80,7 @@ export const books: Book[] = [
     description:
       "A freely available novel about the hidden struggles of today's youth: Jisan's loneliness, the slow slavery of sin behind a mask of pretending, and the hard, hopeful road back. Written to be honest, thoughtful and accessible.",
     cover: "/books/pretend-cover.jpg",
-    pdf: "/books/Pretend-Kazi-Abdul-Halim-Sani.pdf",
+    pdf: "/books/Pretend-Kazi-Abdul-Halim-Sunny.pdf",
     text: "/books/text/pretend.json",
     pages: 56,
     badge: "Free",
