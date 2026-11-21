@@ -147,61 +147,102 @@ body {
 .bk-content strong { font-weight: 700; }
 .bk-content .bk-em { color: var(--bk-accent); }
 .bk-content > * { break-inside: auto; }
-.bk-p, .bk-li, .bk-note, .bk-right, .bk-front { margin: 0 0 0.7em; }
-.bk-li { position: relative; padding-left: 1.3em; }
-.bk-li::before { content: ""; position: absolute; left: 0.25em; top: 0.8em; width: 0.38em; height: 0.38em; border-radius: 9999px; background: var(--bk-accent); }
-.bk-note { font-size: 0.82em; line-height: 1.7; color: var(--bk-muted); }
-.bk-right { text-align: right; color: var(--bk-muted); margin-bottom: 0.15em; }
-.bk-quote { margin: 0.4em 0 1em; padding: 0.1em 0 0.1em 1em; border-left: 3px solid var(--bk-accent); color: var(--bk-ink); opacity: 0.92; text-align: left; break-inside: avoid; }
-.bk-epigraph { margin: 0.2em 1.2em 1.6em; text-align: center; color: var(--bk-muted); font-size: 0.95em; line-height: 1.75; break-inside: avoid; }
-.bk-epigraph::after { content: ""; display: block; width: 2.2em; height: 1px; margin: 0.7em auto; background: var(--bk-accent); opacity: 0.6; }
-.bk-h1 {
+/* ---- body text: indented paragraphs like a printed book ---- */
+.bk-content { hyphens: manual; }
+.bk-p { margin: 0; text-indent: 1.6em; }
+.bk-p.bk-first { text-indent: 0; }
+.bk-li, .bk-right, .bk-front { margin: 0 0 0.45em; }
+.bk-li { position: relative; padding-left: 1.4em; margin-top: 0.2em; }
+.bk-li::before { content: ""; position: absolute; left: 0.3em; top: 0.78em; width: 0.34em; height: 0.34em; transform: rotate(45deg); background: var(--bk-accent); opacity: 0.85; }
+.bk-li + .bk-p, .bk-quote + .bk-p, .bk-h3 + .bk-p { margin-top: 0.5em; }
+.bk-note { margin: 0 0 0.3em; font-size: 0.8em; line-height: 1.65; color: var(--bk-muted); text-align: left; }
+.bk-note-ref { padding-left: 1.8em; text-indent: -1.8em; }
+.bk-notes-head { position: relative; margin-top: 1.5em; padding-top: 0.8em; font-weight: 700; color: var(--bk-ink); break-after: avoid; }
+.bk-notes-head::before { content: ""; position: absolute; top: 0; left: 0; width: 4em; height: 1px; background: var(--bk-muted); opacity: 0.6; }
+.bk-right { text-align: right; color: var(--bk-muted); margin-bottom: 0.1em; }
+.bk-right:first-of-type { margin-top: 1em; }
+.bk-quote { margin: 0.7em 0.6em 0.9em 1em; padding: 0.05em 0 0.05em 0.9em; border-left: 2px solid var(--bk-accent); opacity: 0.92; text-align: left; break-inside: avoid; }
+.bk-epigraph { margin: 0 1.2em 1.8em; text-align: center; color: var(--bk-muted); font-size: 0.93em; line-height: 1.75; break-inside: avoid; }
+.bk-epigraph::after { content: ""; display: block; width: 2.2em; height: 1px; margin: 0.8em auto 0; background: var(--bk-accent); opacity: 0.6; }
+.bk-h3 { break-after: avoid; break-inside: avoid; margin: 1.3em 0 0.45em; font-weight: 700; font-size: 1.04em; line-height: 1.55; text-align: left; }
+.bk-orn { display: block; margin: 0.5em 0; font-size: 0.8em; color: var(--bk-accent); font-weight: 400; text-align: center; }
+.bk-rule { display: block; width: 2.6em; height: 1px; margin: 0.9em auto 0; background: var(--bk-accent); opacity: 0.8; }
+
+/* ---- chapter openers: new page, dropped a little down the page ---- */
+.bk-open {
   break-before: column;
   break-after: avoid;
   break-inside: avoid;
-  margin: 2.2em 0 1.4em;
+  padding-top: calc(var(--bk-pageh, 600px) * 0.13);
+  margin: 0 0 1.7em;
   text-align: center;
-  font-weight: 800;
-  font-size: 1.45em;
-  line-height: 1.45;
+  font-weight: 700;
   color: var(--bk-ink);
 }
-.bk-h2 {
+.bk-open-label { display: block; margin-bottom: 0.5em; color: var(--bk-accent); }
+.bk-open-word { display: block; font-size: 0.78em; font-weight: 600; }
+.bk-open-num { display: block; font-size: 2.6em; font-weight: 400; line-height: 1.15; }
+.bk-open-title { display: block; font-size: 1.32em; line-height: 1.5; }
+.bk-open-sub { display: block; margin-top: 0.35em; font-size: 0.78em; font-weight: 400; font-style: italic; color: var(--bk-muted); }
+
+/* ---- part pages ---- */
+.bk-part {
   break-before: column;
-  break-after: avoid;
+  break-after: column;
   break-inside: avoid;
-  margin: 0.6em 0 1.2em;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.4em 8%;
   text-align: center;
-  font-weight: 800;
-  font-size: 1.28em;
-  line-height: 1.5;
 }
-.bk-h2.bk-nobreak { break-before: auto; margin-top: 1.4em; }
-.bk-label { display: block; margin-bottom: 0.35em; font-size: 0.62em; font-weight: 600; letter-spacing: 0.08em; color: var(--bk-accent); }
-.bk-rule { display: block; width: 3em; height: 2px; margin: 0.7em auto 0; background: var(--bk-accent); opacity: 0.7; border-radius: 2px; }
-.bk-h3 { break-after: avoid; break-inside: avoid; margin: 1.1em 0 0.5em; font-weight: 700; font-size: 1.05em; line-height: 1.55; text-align: left; }
-.bk-orn { display: block; margin-top: 0.5em; font-size: 0.75em; color: var(--bk-accent); font-weight: 400; }
+.bk-part-label { font-size: 0.82em; font-weight: 600; color: var(--bk-accent); }
+.bk-part-title { margin: 0.2em 0 0; font-size: 1.55em; font-weight: 800; line-height: 1.45; }
+.bk-part-sub { margin-top: 0.4em; font-size: 0.82em; font-style: italic; color: var(--bk-muted); }
+.bk-part-intro { margin: 1.4em 0 0; font-size: 0.9em; line-height: 1.8; color: var(--bk-muted); text-align: center; }
+
+/* ---- front matter ---- */
 .bk-cover { margin: 0; display: flex; align-items: center; justify-content: center; break-after: column; break-inside: avoid; }
 .bk-cover img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 2px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25); }
-.bk-title { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; break-before: column; break-after: column; break-inside: avoid; }
-.bk-title-main { font-size: 2em; font-weight: 800; line-height: 1.3; }
-.bk-title-sub { margin-top: 0.6em; font-size: 0.95em; color: var(--bk-muted); line-height: 1.6; }
-.bk-title-author { margin-top: 1.2em; font-size: 1.05em; font-weight: 600; }
-.bk-frontmatter { break-before: column; break-after: column; text-align: center; font-size: 0.82em; line-height: 1.7; color: var(--bk-muted); padding-top: 0.5em; }
-.bk-frontmatter .bk-front { margin: 0 0 0.25em; text-align: center; }
-.bk-frontmatter strong { color: var(--bk-ink); display: inline-block; margin-top: 0.7em; }
+.bk-title { box-sizing: border-box; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 18% 0.5em 4%; break-before: column; break-after: column; break-inside: avoid; }
+.bk-title-main { font-size: 2.2em; font-weight: 800; line-height: 1.3; }
+.bk-title-rule { display: block; width: 3.2em; height: 2px; margin: 1em auto; background: var(--bk-accent); }
+.bk-title-sub { font-size: 0.95em; color: var(--bk-muted); line-height: 1.7; text-align: center; }
+.bk-title-author { margin-top: 3.2em; font-size: 1.12em; font-weight: 600; }
+.bk-title-foot { margin-top: auto; color: var(--bk-accent); font-size: 0.9em; }
+.bk-imprint { box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 0.5em; break-before: column; break-after: column; break-inside: avoid; font-size: 0.74em; line-height: 1.7; color: var(--bk-muted); text-align: left; }
+.bk-imp-title { font-size: 1.3em; font-weight: 700; color: var(--bk-ink); line-height: 1.5; }
+.bk-imp-sub { margin-top: 0.1em; }
+.bk-imp-rule { display: block; width: 2.6em; height: 1px; margin: 0.9em 0; background: var(--bk-muted); opacity: 0.6; }
+.bk-imp-row { margin: 0 0 0.2em; }
+.bk-imp-l { font-weight: 600; color: var(--bk-ink); }
+.bk-imp-l::after { content: ": "; }
+.bk-imp-notice { margin-top: 1.1em; font-size: 0.92em; line-height: 1.65; }
+.bk-dedication { break-before: column; break-after: column; padding-top: calc(var(--bk-pageh, 600px) * 0.14); text-align: center; }
+.bk-ded-title { font-size: 1.15em; font-weight: 700; }
+.bk-ded-title + .bk-orn { margin: 0.3em 0 1.3em; font-size: 1.1em; }
+.bk-ded-p { margin: 0 auto 0.75em; max-width: 26em; font-size: 0.92em; line-height: 1.85; text-align: center; color: var(--bk-ink); opacity: 0.9; }
+
+/* ---- contents ---- */
+.bk-contents { break-before: column; break-after: column; font-size: 0.92em; line-height: 1.6; text-align: left; }
+.bk-contents-title { margin: 0.6em 0 1.3em; text-align: center; font-size: 1.45em; font-weight: 800; }
+.bk-contents-title::after { content: ""; display: block; width: 2.4em; height: 1px; margin: 0.6em auto 0; background: var(--bk-accent); }
+.bk-toc-row { display: flex; align-items: flex-end; gap: 0.35em; }
+.bk-toc-t { flex: 0 1 auto; }
+.bk-toc-dots { flex: 1 1 1.5em; min-width: 1.5em; margin-bottom: 0.42em; border-bottom: 2px dotted color-mix(in srgb, var(--bk-muted) 60%, transparent); }
+.bk-toc-n { flex: none; min-width: 1.8em; text-align: right; font-weight: 600; }
+.bk-toc-num { flex: none; align-self: flex-start; min-width: 1.5em; font-weight: 700; color: var(--bk-accent); }
+.bk-toc-part { margin: 1.2em 0 0.55em; break-inside: avoid; break-after: avoid; font-weight: 700; }
+.bk-toc-plabel { display: block; font-size: 0.72em; font-weight: 600; color: var(--bk-accent); }
+.bk-toc-ch { margin: 0 0 0.6em; break-inside: avoid; }
+.bk-toc-plain { margin: 0.55em 0; font-weight: 600; break-inside: avoid; }
+.bk-toc-desc { display: block; margin-top: 0.1em; padding-left: 1.85em; padding-right: 2.2em; font-size: 0.8em; line-height: 1.6; color: var(--bk-muted); }
+
+/* ---- end ---- */
 .bk-end { break-before: column; break-inside: avoid; text-align: center; padding-top: 30%; }
 .bk-end-title { font-size: 1.3em; font-weight: 800; margin-top: 0.4em; }
 .bk-end-text { margin-top: 0.6em; color: var(--bk-muted); font-size: 0.92em; text-align: center; }
-@media (max-width: 639px) {
-  .bk-content { text-align: left; }
-}
-/* scroll mode: one continuous column */
-.bk-scroll .bk-h1, .bk-scroll .bk-h2, .bk-scroll .bk-title, .bk-scroll .bk-frontmatter, .bk-scroll .bk-end { break-before: auto; break-after: auto; }
-.bk-scroll .bk-h1 { margin-top: 3.2em; padding-top: 1.6em; border-top: 1px solid color-mix(in srgb, var(--bk-muted) 25%, transparent); }
-.bk-scroll .bk-h2 { margin-top: 3em; padding-top: 1.4em; border-top: 1px solid color-mix(in srgb, var(--bk-muted) 18%, transparent); }
-.bk-scroll .bk-h2.bk-nobreak { border-top: 0; padding-top: 0; margin-top: 1.4em; }
-.bk-scroll .bk-cover img { max-height: 78vh; width: auto; }
-.bk-scroll .bk-title { padding: 3.5em 0 2.5em; }
-.bk-scroll .bk-frontmatter { margin: 1em 0 2em; }
-.bk-scroll .bk-end { padding-top: 3em; }
+.bk-colophon { margin-top: 2.5em; text-align: center; font-weight: 700; break-inside: avoid; }
+.bk-sign { margin-top: 1em; }

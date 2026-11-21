@@ -103,28 +103,177 @@ function Runs({ runs }: { runs: Run[] }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Book structure: front matter, dedication, contents, parts, chapters  */
+/* ------------------------------------------------------------------ */
+const YA = "য়"; // precomposed য়, the form the book text uses
+const nk = (s: string) => s.replace(/য়/g, YA);
+const CHAPTER_RE = new RegExp(`^অধ্যা${YA}\\s*([০-৯0-9]+)`);
+const isHead = (b?: Block) => !!b && (b.type === "h1" || b.type === "h2");
+
+type Heading = { label?: string; runs: Run[]; sub?: string };
+/** "অধ্যায় ১: নাম (English)" -> label "অধ্যায় ১", title runs "নাম", sub "English" */
+function sliceRuns(runs: Run[], start: number, end: number): Run[] {
+  const out: Run[] = [];
+  let pos = 0;
+  for (const [t, f] of runs) {
+    const a = Math.max(start, pos);
+    const z = Math.min(end, pos + t.length);
+    if (z > a) out.push([t.slice(a - pos, z - pos), f]);
+    pos += t.length;
+  }
+  return out;
+}
+function headParts(b: Block): Heading {
+  const text = b.runs.map((r) => r[0]).join("");
+  let start = 0;
+  let end = text.length;
+  let label = b.label;
+  if (!label) {
+    const m = text.match(/^\s*([^:：]{2,16}?)\s*[:：]\s*(?=\S)/);
+    if (m) {
+      label = m[1];
+      start = m[0].length;
+    }
+  }
+  let sub: string | undefined;
+  const sm = text.slice(start).match(/\s*\(([A-Za-z][^()]*)\)\s*$/);
+  if (sm && sm.index! > 0) {
+    sub = sm[1];
+    end = start + sm.index!;
+  }
+  return { label, runs: sliceRuns(b.runs, start, end), sub };
+}
+const headTitle = (h: Heading) => h.runs.map((r) => r[0]).join("").trim();
+
+type TocEntry = { i: number; kind: "part" | "chapter" | "plain"; label?: string; num?: string; title: string; desc?: string };
+type Struct = { frontEnd: number; ded: [number, number] | null; tocSrc: [number, number] | null; mainStart: number; entries: TocEntry[]; parts: Set<number> };
+
+function analyse(body: Block[]): Struct {
+  let k = 0;
+  while (k < body.length && body[k].type === "front") k++;
+  const frontEnd = k;
+  let ded: [number, number] | null = null;
+  let tocSrc: [number, number] | null = null;
+  for (;;) {
+    const b = body[k];
+    if (!isHead(b)) break;
+    const t = plain(b).trim();
+    let e = k + 1;
+    while (e < body.length && !isHead(body[e])) e++;
+    if (t === "উৎসর্গ") ded = [k, e];
+    else if (t.startsWith("সূচিপত্র")) tocSrc = [k, e];
+    else break;
+    k = e;
+  }
+  const mainStart = k;
+  // the author's chapter notes in the old contents list become descriptions
+  const desc: Record<string, string[]> = {};
+  if (tocSrc) {
+    let cur = "";
+    for (let i = tocSrc[0] + 1; i < tocSrc[1]; i++) {
+      const t = nk(plain(body[i])).trim();
+      const m = t.match(CHAPTER_RE);
+      if (m) cur = m[1];
+      else if (body[i].type === "li" && cur) (desc[cur] ??= []).push(t);
+      else if (body[i].type !== "li") cur = "";
+    }
+  }
+  const entries: TocEntry[] = [];
+  const parts = new Set<number>();
+  for (let i = mainStart; i < body.length; i++) {
+    const b = body[i];
+    if (!isHead(b)) continue;
+    const h = headParts(b);
+    const title = headTitle(h);
+    const lab = h.label ? nk(h.label) : undefined;
+    if (b.type === "h1" && lab && /খণ্ড/.test(lab)) {
+      parts.add(i);
+      entries.push({ i, kind: "part", label: lab, title });
+      continue;
+    }
+    const cm = lab?.match(CHAPTER_RE);
+    if (cm) entries.push({ i, kind: "chapter", label: lab, num: cm[1], title, desc: desc[cm[1]]?.join(" ") });
+    else entries.push({ i, kind: "plain", label: lab, title: lab && !/খণ্ড/.test(lab) ? `${lab}: ${title}` : title });
+  }
+  return { frontEnd, ded, tocSrc, mainStart, entries, parts };
+}
+
+const IMPRINT_LABELS = ["জনরা", "লেখক", "গ্রন্থস্বত্ব", "প্রকাশকাল", "প্রচ্ছদ", "অক্ষরবিন্যাস ও সম্পাদনা", "যোগাযোগ", "মূল্য"];
+function Imprint({ book, blocks, pageH }: { book: Book; blocks: Block[]; pageH?: number }) {
+  const rows: { label: string; lines: string[] }[] = [];
+  const pre: string[] = [];
+  for (const b of blocks) {
+    const t = plain(b).trim();
+    if (IMPRINT_LABELS.includes(t)) rows.push({ label: t, lines: [] });
+    else if (rows.length) rows[rows.length - 1].lines.push(t);
+    else pre.push(t);
+  }
+  const get = (l: string) => rows.find((r) => r.label === l)?.lines ?? [];
+  const rights = get("গ্রন্থস্বত্ব");
+  const notice = rights.slice(1).join(" ").replace(/^\(|\)$/g, "");
+  const line = (label: string, value: string) =>
+    value && (
+      <p key={label + value} className="bk-imp-row">
+        <span className="bk-imp-l">{label}</span>
+        <span className="bk-imp-v">{value}</span>
+      </p>
+    );
+  return (
+    <section data-b={0} className="bk-imprint" style={pageH ? { minHeight: pageH } : undefined}>
+      <div>
+        <p className="bk-imp-title">{pre[0] ?? book.title}</p>
+        <p className="bk-imp-sub">{pre[1] ?? book.tagline}</p>
+        <span className="bk-imp-rule" aria-hidden />
+        {line("লেখক", get("লেখক").join(" ") || penName)}
+        {line("জনরা", get("জনরা").join(" "))}
+        {line("গ্রন্থস্বত্ব", rights[0] ? `© ${rights[0]}` : "")}
+        {get("প্রকাশকাল").map((l) => {
+          const [a, ...v] = l.split(/[:：]\s*/);
+          return v.length ? line(a, v.join(": ")) : line("প্রকাশকাল", l);
+        })}
+        {line("প্রচ্ছদ", get("প্রচ্ছদ").join(" "))}
+        {line("অক্ষরবিন্যাস ও সম্পাদনা", get("অক্ষরবিন্যাস ও সম্পাদনা").join(" "))}
+        {line("যোগাযোগ", get("যোগাযোগ").join(" ").replace(/^ইমেইল[:：]\s*/, ""))}
+        {line("মূল্য", get("মূল্য").join(" "))}
+        {notice && <p className="bk-imp-notice">{notice}</p>}
+      </div>
+    </section>
+  );
+}
+
+function Opener({ b, i }: { b: Block; i: number }) {
+  const h = headParts(b);
+  const lab = h.label ? nk(h.label) : undefined;
+  const cm = lab?.match(/^(.*?)\s*([০-৯0-9]+)$/);
+  return (
+    <h2 data-b={i} className={`bk-open ${b.type === "h1" ? "bk-h1" : "bk-h2"}`}>
+      {lab &&
+        (cm ? (
+          <span className="bk-open-label">
+            <span className="bk-open-word">{cm[1]}</span>
+            <span className="bk-open-num">{cm[2]}</span>
+          </span>
+        ) : (
+          <span className="bk-open-label">
+            <span className="bk-open-word">{lab}</span>
+          </span>
+        ))}
+      <span className="bk-open-title">
+        <Runs runs={h.runs} />
+      </span>
+      {h.sub && <span className="bk-open-sub">{h.sub}</span>}
+      <span className="bk-rule" aria-hidden />
+    </h2>
+  );
+}
+
 function BlockView({ b, i, prev }: { b: Block; i: number; prev?: Block }) {
   const common = { "data-b": i } as Record<string, number>;
   switch (b.type) {
     case "h1":
-      return (
-        <h2 {...common} className="bk-h1">
-          <Runs runs={b.runs} />
-          <span className="bk-orn" aria-hidden>
-            ❖
-          </span>
-        </h2>
-      );
     case "h2":
-      return (
-        <h3 {...common} className={`bk-h2 ${prev?.type === "h1" ? "bk-nobreak" : ""}`}>
-          {b.label && <span className="bk-label">{b.label}</span>}
-          <span className="block">
-            <Runs runs={b.runs} />
-          </span>
-          <span className="bk-rule" aria-hidden />
-        </h3>
-      );
+      return <Opener b={b} i={i} />;
     case "h3":
       return (
         <h4 {...common} className="bk-h3">
@@ -139,16 +288,19 @@ function BlockView({ b, i, prev }: { b: Block; i: number; prev?: Block }) {
       );
     case "quote":
       return (
-        <blockquote {...common} className={prev && (prev.type === "h2" || prev.type === "h1") ? "bk-epigraph" : "bk-quote"}>
+        <blockquote {...common} className={isHead(prev) ? "bk-epigraph" : "bk-quote"}>
           <Runs runs={b.runs} />
         </blockquote>
       );
-    case "note":
+    case "note": {
+      const t = plain(b).trim();
+      const cls = /[:：]$/.test(t) && t.length < 40 ? "bk-note bk-notes-head" : /^\[/.test(t) ? "bk-note bk-note-ref" : t.startsWith(penName) ? "bk-right bk-sign" : "bk-note";
       return (
-        <p {...common} className="bk-note">
+        <p {...common} className={cls}>
           <Runs runs={b.runs} />
         </p>
       );
+    }
     case "right":
       return (
         <p {...common} className="bk-right">
@@ -163,7 +315,7 @@ function BlockView({ b, i, prev }: { b: Block; i: number; prev?: Block }) {
       );
     default:
       return (
-        <p {...common} className={prev && /^h/.test(prev.type) ? "bk-p bk-first" : "bk-p"}>
+        <p {...common} className={prev?.type === "p" ? "bk-p" : "bk-p bk-first"}>
           <Runs runs={b.runs} />
         </p>
       );
@@ -171,55 +323,144 @@ function BlockView({ b, i, prev }: { b: Block; i: number; prev?: Block }) {
 }
 
 /** The whole book as one flow. Rendered once per copy and never re-rendered on page turns. */
-const BookFlow = memo(function BookFlow({ book, body, pageH, onShare }: { book: Book; body: Block[]; pageH?: number; onShare: () => void }) {
-  const firstFront = body.findIndex((b) => b.type === "front");
-  const lastFront = body.length - 1 - [...body].reverse().findIndex((b) => b.type === "front");
+const BookFlow = memo(function BookFlow({
+  book,
+  body,
+  pageH,
+  pages,
+  print,
+  onShare,
+}: {
+  book: Book;
+  body: Block[];
+  pageH?: number;
+  pages?: number[];
+  print?: boolean;
+  onShare: () => void;
+}) {
+  const S = useMemo(() => analyse(body), [body]);
+  const pg = (i: number) => (pages?.[i] === undefined ? "" : bnDigits(pages[i] + 1));
+  const full = pageH ? { height: pageH } : undefined;
+  const out: React.ReactNode[] = [];
+  for (let i = S.mainStart; i < body.length; i++) {
+    const b = body[i];
+    if (S.parts.has(i)) {
+      const h = headParts(b);
+      // a short introduction right after the part title stays on the part page
+      let e = i + 1;
+      while (e < body.length && body[e].type === "p" && !isHead(body[e])) e++;
+      const intro = body.slice(i + 1, e);
+      const keep = intro.length > 0 && intro.reduce((n, x) => n + plain(x).length, 0) < 420;
+      out.push(
+        <section key={i} data-b={i} className="bk-part" style={pageH ? { minHeight: pageH } : undefined}>
+          <span className="bk-part-label">{h.label}</span>
+          <span className="bk-orn" aria-hidden>
+            ❖
+          </span>
+          <h2 className="bk-part-title">
+            <Runs runs={h.runs} />
+          </h2>
+          {h.sub && <p className="bk-part-sub">{h.sub}</p>}
+          {keep &&
+            intro.map((x, j) => (
+              <p key={j} data-b={i + 1 + j} className="bk-part-intro">
+                <Runs runs={x.runs} />
+              </p>
+            ))}
+        </section>
+      );
+      if (keep) i = e - 1;
+      continue;
+    }
+    out.push(<BlockView key={i} b={b} i={i} prev={body[i - 1]} />);
+  }
   return (
     <>
-      <figure className="bk-cover" style={pageH ? { height: pageH } : undefined}>
+      <figure className="bk-cover" style={full}>
         {book.cover && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={book.cover} alt={`${book.title} cover`} />
         )}
       </figure>
-      <section className="bk-title" style={pageH ? { height: pageH } : undefined}>
+      <section className="bk-title" style={full}>
         <p className="bk-title-main">{book.title}</p>
+        <span className="bk-title-rule" aria-hidden />
         <p className="bk-title-sub">{book.tagline}</p>
-        <span className="bk-orn" aria-hidden>
-          ❖
-        </span>
         <p className="bk-title-author">{penName}</p>
-      </section>
-      {body.map((b, i) => {
-        if (i === firstFront)
-          return (
-            <div key={`f${i}`} className="bk-frontmatter">
-              {body.slice(firstFront, lastFront + 1).map((fb, j) => (
-                <BlockView key={firstFront + j} b={fb} i={firstFront + j} />
-              ))}
-            </div>
-          );
-        if (firstFront >= 0 && i > firstFront && i <= lastFront) return null;
-        return <BlockView key={i} b={b} i={i} prev={body[i - 1]} />;
-      })}
-      <section className="bk-end">
-        <span className="bk-orn" aria-hidden>
+        <span className="bk-title-foot" aria-hidden>
           ❖
         </span>
-        <p className="bk-end-title">পড়ার জন্য ধন্যবাদ</p>
-        <p className="bk-end-text">ভালো লাগলে বন্ধুদের সাথে শেয়ার করুন, আর গেস্টবুকে আপনার মতামত লিখে যান।</p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <button onClick={onShare} className="rounded-lg bg-emerald-600 px-4 py-2 font-sans text-sm font-medium text-white">
-            Share
-          </button>
-          <Link href="/#guestbook" className="rounded-lg border border-current/20 px-4 py-2 font-sans text-sm font-medium">
-            Guestbook
-          </Link>
-          <a href={book.pdf} download className="rounded-lg border border-current/20 px-4 py-2 font-sans text-sm font-medium">
-            PDF
-          </a>
-        </div>
       </section>
+      {S.frontEnd > 0 && <Imprint book={book} blocks={body.slice(0, S.frontEnd)} pageH={pageH} />}
+      {S.ded && (
+        <section data-b={S.ded[0]} className="bk-dedication">
+          <p className="bk-ded-title">উৎসর্গ</p>
+          <span className="bk-orn" aria-hidden>
+            ❦
+          </span>
+          {body.slice(S.ded[0] + 1, S.ded[1]).map((x, j) => (
+            <p key={j} data-b={S.ded![0] + 1 + j} className="bk-ded-p">
+              <Runs runs={x.runs} />
+            </p>
+          ))}
+        </section>
+      )}
+      {S.entries.length > 2 && (
+        <nav data-b={S.tocSrc?.[0]} className="bk-contents" aria-label="সূচিপত্র">
+          <h2 className="bk-contents-title">সূচিপত্র</h2>
+          {S.entries.map((e) =>
+            e.kind === "part" ? (
+              <div key={e.i} className="bk-toc-part">
+                <span className="bk-toc-plabel">{e.label}</span>
+                <span className="bk-toc-row">
+                  <span className="bk-toc-t">{e.title}</span>
+                  <span className="bk-toc-dots" aria-hidden />
+                  <span className="bk-toc-n">{pg(e.i)}</span>
+                </span>
+              </div>
+            ) : (
+              <div key={e.i} className={e.kind === "chapter" ? "bk-toc-ch" : "bk-toc-plain"}>
+                <span className="bk-toc-row">
+                  {e.num && <span className="bk-toc-num">{e.num}</span>}
+                  <span className="bk-toc-t">{e.title}</span>
+                  <span className="bk-toc-dots" aria-hidden />
+                  <span className="bk-toc-n">{pg(e.i)}</span>
+                </span>
+                {e.desc && <span className="bk-toc-desc">{e.desc}</span>}
+              </div>
+            )
+          )}
+        </nav>
+      )}
+      {out}
+      {!print && (
+        <section className="bk-end">
+          <span className="bk-orn" aria-hidden>
+            ❖
+          </span>
+          <p className="bk-end-title">পড়ার জন্য ধন্যবাদ</p>
+          <p className="bk-end-text">ভালো লাগলে বন্ধুদের সাথে শেয়ার করুন, আর গেস্টবুকে আপনার মতামত লিখে যান।</p>
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            <button onClick={onShare} className="rounded-lg bg-emerald-600 px-4 py-2 font-sans text-sm font-medium text-white">
+              Share
+            </button>
+            <Link href="/#guestbook" className="rounded-lg border border-current/20 px-4 py-2 font-sans text-sm font-medium">
+              Guestbook
+            </Link>
+            <a href={book.pdf} download className="rounded-lg border border-current/20 px-4 py-2 font-sans text-sm font-medium">
+              PDF
+            </a>
+          </div>
+        </section>
+      )}
+      {print && (
+        <section className="bk-colophon">
+          <span className="bk-orn" aria-hidden>
+            ❖
+          </span>
+          <p>সমাপ্ত</p>
+        </section>
+      )}
     </>
   );
 });
@@ -237,7 +478,9 @@ function PageFace({
   muted,
   paper,
   edge,
+  shift = 0,
 }: {
+  shift?: number;
   col: number | null;
   geo: Geo;
   flow: React.ReactNode;
@@ -252,11 +495,11 @@ function PageFace({
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ width: pageW, height: paperH, background: paper }}>
       {head && (
-        <div className="pointer-events-none absolute truncate text-center font-bn text-[11px] tracking-wide" style={{ left: px, width: colW, top: small ? 12 : 20, color: muted }}>
+        <div className="pointer-events-none absolute truncate text-center font-bn text-[11px] tracking-wide" style={{ left: px + shift, width: colW, top: small ? 12 : 20, color: muted }}>
           {head}
         </div>
       )}
-      <div className="absolute" style={{ left: px, top: pt, width: colW, height: contentH, visibility: col === null ? "hidden" : undefined }}>
+      <div className="absolute" style={{ left: px + shift, top: pt, width: colW, height: contentH, visibility: col === null ? "hidden" : undefined }}>
         <div
           ref={contentRef}
           className="bk-content"
@@ -267,6 +510,7 @@ function PageFace({
             columnFill: "auto",
             width: colW,
             height: contentH,
+            ["--bk-pageh" as string]: `${contentH}px`,
             transform: `translateX(${-(col ?? 0) * stride}px)`,
           }}
         >
@@ -274,7 +518,7 @@ function PageFace({
         </div>
       </div>
       {num && (
-        <div className="pointer-events-none absolute inset-x-0 text-center font-bn text-xs" style={{ bottom: small ? 12 : 18, color: muted }}>
+        <div className="pointer-events-none absolute text-center font-bn text-xs" style={{ left: px + shift, width: colW, bottom: small ? 12 : 18, color: muted }}>
           {num}
         </div>
       )}
@@ -311,6 +555,7 @@ export function Reader({ book }: { book: Book }) {
   const [resumed, setResumed] = useState(false);
   const [scrollPage, setScrollPage] = useState(0);
   const [sound, setSound] = useState(true);
+  const [print, setPrint] = useState(false);
   const soundRef = useRef(true);
   const audioRef = useRef<AudioContext | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -329,14 +574,17 @@ export function Reader({ book }: { book: Book }) {
 
   /* ---------- load text + preferences ---------- */
   useEffect(() => {
-    unlock("reader");
+    // ?print renders every page at A5 size for the PDF (scripts/book-text/make-pdf.cjs)
+    const isPrint = new URLSearchParams(window.location.search).has("print");
+    if (!isPrint) unlock("reader");
     reduceMotion.current = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    setTheme(load<Theme>("reader:theme", "light"));
-    setMode(load<Mode>("reader:mode", "page"));
-    setFontSize(load<number>("reader:font", 18));
+    setTheme(isPrint ? "light" : load<Theme>("reader:theme", "light"));
+    setMode(isPrint ? "scroll" : load<Mode>("reader:mode", "page"));
+    setFontSize(isPrint ? 15 : load<number>("reader:font", 18));
+    setPrint(isPrint);
     soundRef.current = load<boolean>("reader:sound", true);
     setSound(soundRef.current);
-    const saved = load<SavedPos | null>(`readpos:${book.slug}`, null);
+    const saved = isPrint ? null : load<SavedPos | null>(`readpos:${book.slug}`, null);
     if (saved && saved.b > 2) {
       anchorRef.current = saved.b;
       setResumed(true);
@@ -359,7 +607,7 @@ export function Reader({ book }: { book: Book }) {
     ro.observe(el);
     setDims({ W: el.clientWidth, H: el.clientHeight });
     return () => ro.disconnect();
-  }, []);
+  }, [print]);
 
   /* ---------- page geometry ---------- */
   const { W, H } = dims;
@@ -382,7 +630,11 @@ export function Reader({ book }: { book: Book }) {
   const sPageW = Math.floor(Math.min(small ? 9999 : 640, W - 2 * m));
   const sPaperH = Math.round(sPageW * (small ? 1.55 : 1.4));
   const sColW = Math.max(120, sPageW - 2 * px);
-  const sgeo: Geo = { pageW: sPageW, paperH: sPaperH, px, pt, pb, colW: sColW, gap, stride: sColW + gap, contentH: Math.max(160, sPaperH - pt - pb), small };
+  const PRINT_W = 559; // A5 at 96 dpi
+  const PRINT_H = 793;
+  const sgeo: Geo = print
+    ? { pageW: PRINT_W, paperH: PRINT_H, px: 54, pt: 62, pb: 58, colW: PRINT_W - 108, gap: 108, stride: PRINT_W, contentH: PRINT_H - 120, small: false }
+    : { pageW: sPageW, paperH: sPaperH, px, pt, pb, colW: sColW, gap, stride: sColW + gap, contentH: Math.max(160, sPaperH - pt - pb), small };
   const gapY = small ? 14 : 28;
   const pitch = sPaperH + gapY;
   const G = mode === "page" ? geo : sgeo;
@@ -560,21 +812,24 @@ export function Reader({ book }: { book: Book }) {
   }, [book.title, toast]);
 
   /* ---------- contents ---------- */
+  const struct = useMemo(() => analyse(body), [body]);
   const toc = useMemo(
     () =>
       body
         .map((b, i) => ({ b, i }))
         .filter(({ b }) => b.type === "h1" || b.type === "h2")
-        .map(({ b, i }) => ({ i, level: b.type, title: b.label ? `${b.label}: ${plain(b)}` : plain(b) })),
+        .map(({ b, i }) => {
+          const t = plain(b).trim();
+          return { i, level: b.type, title: t.startsWith("সূচিপত্র") ? "সূচিপত্র" : b.label ? `${b.label}: ${t}` : t, head: headTitle(headParts(b)) };
+        }),
     [body]
   );
   const chapterAt = useCallback((p: number) => [...toc].reverse().find((c) => (blockCol[c.i] ?? Infinity) <= p), [toc, blockCol]);
   const chapter = chapterAt(mode === "page" ? page : scrollPage);
-  const firstTextCol = useMemo(() => {
-    const i = body.findIndex((b) => b.type !== "front");
-    return i < 0 ? 2 : blockCol[i] ?? 2;
-  }, [body, blockCol]);
+  // front matter (title, imprint, dedication, contents) carries no running head or folio
+  const mainCol = blockCol[struct.mainStart] ?? 2;
   const openingCols = useMemo(() => new Set(toc.map((c) => blockCol[c.i])), [toc, blockCol]);
+  const partCols = useMemo(() => new Set([...struct.parts].map((i) => blockCol[i])), [struct, blockCol]);
 
   const jumpToBlock = (i: number) => {
     if (mode === "page") return goTo(i < 0 ? 0 : blockCol[i] ?? 0);
@@ -587,11 +842,13 @@ export function Reader({ book }: { book: Book }) {
   const bar = dark ? "border-white/10 bg-[#11141b]/95 text-slate-200" : "border-black/10 bg-white/90 text-slate-800";
   const shownTo = Math.min(nPages, page + cols);
 
-  const headFor = (p: number | null, left: boolean) => {
-    if (p === null || p < firstTextCol || p >= nPages || openingCols.has(p)) return null;
-    return C === 2 && left ? book.title : chapterAt(p)?.title ?? book.title;
+  // running heads: book title on the left-hand (even) page, chapter on the right-hand (odd) page
+  const headFor = (p: number | null, left?: boolean) => {
+    if (p === null || p < mainCol || p >= nPages || openingCols.has(p)) return null;
+    const verso = C === 2 ? !!left : (p + 1) % 2 === 0;
+    return verso ? book.title : chapterAt(p)?.head ?? book.title;
   };
-  const numFor = (p: number | null) => (p === null || p === 0 || p >= nPages ? null : bnDigits(p + 1));
+  const numFor = (p: number | null) => (p === null || p < mainCol || p >= nPages || partCols.has(p) ? null : bnDigits(p + 1));
 
   /* ---------- gestures (page mode) ---------- */
   const onPointerDown = (e: React.PointerEvent) => {
@@ -626,7 +883,7 @@ export function Reader({ book }: { book: Book }) {
   } as React.CSSProperties;
 
   // one memoized flow per copy so page turns never re-render the text
-  const flowPaged = useMemo(() => (blocks ? <BookFlow book={book} body={body} pageH={G.contentH} onShare={share} /> : null), [blocks, book, body, G.contentH, share]);
+  const flowPaged = useMemo(() => (blocks ? <BookFlow book={book} body={body} pageH={G.contentH} pages={blockCol} print={print} onShare={share} /> : null), [blocks, book, body, G.contentH, blockCol, print, share]);
 
   /* ---------- which page sits where (page mode) ---------- */
   // Static pages under the turning leaf, and the leaf's two faces.
@@ -650,6 +907,26 @@ export function Reader({ book }: { book: Book }) {
     } else base = [page];
   }
   const vis = (p: number | null) => (p === null || p >= nPages ? null : p);
+
+  if (print)
+    return (
+      <div ref={stageRef} className="bk-print" data-reader-ready={ready ? "true" : undefined} data-pages={nPages} style={{ ...cssVars, color: T.ink, background: "#fff", width: PRINT_W }}>
+        <div aria-hidden className="pointer-events-none absolute left-0 top-0" style={{ visibility: "hidden", width: PRINT_W, height: PRINT_H }}>
+          <PageFace col={0} geo={sgeo} flow={flowPaged} contentRef={contentRef} muted={T.muted} paper="#fff" />
+        </div>
+        {ready &&
+          Array.from({ length: nPages }, (_, p) => (
+            <div key={p} className="bk-print-page relative overflow-hidden" style={{ width: PRINT_W, height: PRINT_H, breakAfter: "page" }}>
+              {p === 0 && book.cover ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={book.cover} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <PageFace col={p} geo={sgeo} flow={flowPaged} head={headFor(p)} num={numFor(p)} muted={T.muted} paper="#fff" shift={(p + 1) % 2 ? 8 : -8} />
+              )}
+            </div>
+          ))}
+      </div>
+    );
 
   return (
     <div className="flex h-[100svh] flex-col overflow-hidden" style={{ background: T.bg }}>
@@ -933,9 +1210,9 @@ export function Reader({ book }: { book: Book }) {
                   {ready && Math.abs(p - scrollPage) <= 2 ? (
                     <PageFace col={p} geo={sgeo} flow={flowPaged} head={headFor(p, false)} num={numFor(p)} muted={T.muted} paper={T.paper} />
                   ) : (
-                    p > 0 && (
+                    numFor(p) && (
                       <div className="absolute inset-x-0 text-center font-bn text-xs" style={{ bottom: small ? 12 : 18, color: T.muted }}>
-                        {bnDigits(p + 1)}
+                        {numFor(p)}
                       </div>
                     )
                   )}
