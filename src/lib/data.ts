@@ -269,7 +269,7 @@ export const leadership: { role: string; org: string; period: string; cert?: str
 export const education = {
   degree: "B.Sc. in Software Engineering",
   school: "Metropolitan University, Sylhet",
-  period: "2023 – 2026 (expected)",
+  period: "2023 – 2026",
   detail:
     "CGPA 3.96 / 4.00 · Chairman's Scholarship (4.00 GPA in three consecutive semesters) and Vice Chancellor's Scholarship (three consecutive semesters at 4.00, at most one course at 3.75)",
 };
