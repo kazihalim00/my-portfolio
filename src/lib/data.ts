@@ -74,7 +74,7 @@ export const experience: TimelineItem[] = [
     org: "Bangladesh Youth Leadership Center (BYLC)",
     period: "May 2026",
     kind: "training",
-    points: ["Certified Leadership Facilitator; facilitated leadership sessions for youth (May – Jul 2026)."],
+    points: ["Certified Leadership Facilitator; facilitated leadership sessions for university students up to second year (May – Jul 2026)."],
     links: [{ label: "Certificate", href: "https://drive.google.com/file/d/15NY3zr7xDi_PqajTc3gAMa_oejgDAPJu/view" }],
   },
 ];
@@ -256,8 +256,8 @@ export const leadership: { role: string; org: string; period: string; cert?: str
   },
   { role: "Mentor", org: "MU Programming Olympiad", period: "2023 – 2026" },
   { role: "Publication Secretary", org: "Metropolitan University Islamic Society", period: "2025 – 2026" },
-  { role: "Certified Leadership Facilitator", org: "BYLC", period: "05/2026 – 07/2026" },
-  { role: "Co-Curricular Secretary", org: "SWE Innovators Forum, MU", period: "01/2025 – 02/2026" },
+  { role: "Certified Leadership Facilitator", org: "BYLC: facilitated leadership sessions for university students up to second year", period: "05/2026 – 07/2026" },
+  { role: "Co-Curricular Secretary", org: "SWE Innovators Forum, MU: technical workshops and events for 200+ members", period: "01/2025 – 02/2026" },
   { role: "Additional Cultural Secretary", org: "SWE Innovators Forum, MU", period: "01/2023 – 12/2023" },
   {
     role: "Co-Founder",
