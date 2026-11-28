@@ -87,10 +87,14 @@ export function Experience() {
                       </li>
                     ))}
                   </ul>
-                  {e.link && (
-                    <a href={e.link.href} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">
-                      {e.link.label} <ExternalLink size={13} />
-                    </a>
+                  {e.links && (
+                    <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+                      {e.links.map((l) => (
+                        <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">
+                          {l.label} <ExternalLink size={13} />
+                        </a>
+                      ))}
+                    </div>
                   )}
                 </SpotlightCard>
               </div>
@@ -398,6 +402,11 @@ export function Journey() {
                   <div>
                     <p className="text-sm font-medium">{l.role}</p>
                     <p className="text-xs text-muted">{l.org}</p>
+                    {l.cert && (
+                      <a href={l.cert} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline">
+                        Certificate <ExternalLink size={11} />
+                      </a>
+                    )}
                   </div>
                   <span className="font-mono text-xs text-muted">{l.period}</span>
                 </li>

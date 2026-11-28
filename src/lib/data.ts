@@ -37,7 +37,7 @@ export type TimelineItem = {
   period: string;
   kind: "work" | "training" | "leadership";
   points: string[];
-  link?: { label: string; href: string };
+  links?: { label: string; href: string }[];
 };
 
 export const experience: TimelineItem[] = [
@@ -47,10 +47,15 @@ export const experience: TimelineItem[] = [
     period: "Sep 2026 – Nov 2026",
     kind: "work",
     points: [
-      "Tested and troubleshot client-reported issues in three live SaaS products: EzyCourse, EzyCommunity and Skreno.",
+      "Industry internship completed as part of my B.Sc. in Software Engineering program.",
+      "Provided client support for three live SaaS products (EzyCourse, EzyCommunity and Skreno), helping many clients and handling several requests for the same client from first report to final fix.",
       "Reproduced issues with browser console logs, API responses and cross-browser/device checks, then reported confirmed bugs to developers with clear steps to reproduce.",
-      "Tested new features with the product team before release and shared user-experience feedback.",
-      "Supported clients by email, chat and video call, and tracked every issue to resolution on Trello.",
+      "Did light testing of new features with the product team before release, and tracked every issue to resolution on Trello.",
+    ],
+    links: [
+      { label: "EzyCourse", href: "https://ezycourse.com/" },
+      { label: "EzyCommunity", href: "https://ezycommunity.com/" },
+      { label: "Skreno", href: "https://www.skreno.ai/" },
     ],
   },
   {
@@ -62,10 +67,7 @@ export const experience: TimelineItem[] = [
       "Five-month on-site training with industry experience in Laravel, Vue.js and MySQL.",
       "Built the House Rent Management System as the course project.",
     ],
-    link: {
-      label: "Certificate",
-      href: "https://drive.google.com/file/d/1gh_HbbRzMKhmjD6Vwt-kbPHZbvnMuaYY/view",
-    },
+    links: [{ label: "Certificate", href: "https://drive.google.com/file/d/1gh_HbbRzMKhmjD6Vwt-kbPHZbvnMuaYY/view" }],
   },
   {
     role: "Facilitator Development Program (FDP)",
@@ -73,10 +75,7 @@ export const experience: TimelineItem[] = [
     period: "May 2026",
     kind: "training",
     points: ["Certified Leadership Facilitator; facilitated leadership sessions for youth (May – Jul 2026)."],
-    link: {
-      label: "Certificate",
-      href: "https://drive.google.com/file/d/15NY3zr7xDi_PqajTc3gAMa_oejgDAPJu/view",
-    },
+    links: [{ label: "Certificate", href: "https://drive.google.com/file/d/15NY3zr7xDi_PqajTc3gAMa_oejgDAPJu/view" }],
   },
 ];
 
@@ -93,6 +92,18 @@ export type Project = {
 };
 
 export const projects: Project[] = [
+  {
+    name: "PharmaCareBD",
+    tagline: "Business management SaaS, live with 30+ clients",
+    description:
+      "A multi-tenant Laravel SaaS in production with three products: Pharmacy Management, Diagnostic Centre Management and Shop Management. POS with batch stock and split payments, an OCR invoice scanner, and every stock and money change in a DB transaction with a ledger and audit log.",
+    tags: ["Laravel 12", "MySQL", "Tailwind CSS", "Alpine.js", "PHPUnit"],
+    category: ["Laravel", "PHP"],
+    badge: "Live · 30+ clients",
+    links: [{ label: "Live site", href: "https://pharmacarebd.com" }],
+    highlights: ["3 products in production", "Search 80 ms → 5–20 ms", "300+ automated tests"],
+    accent: "from-sky-400 to-emerald-400",
+  },
   {
     name: "Noor-AI",
     tagline: "Cite-or-abstain Islamic question answering",
@@ -218,21 +229,49 @@ export const learning = [
   { name: "TypeScript & Next.js", stage: "Leveling up" },
 ];
 
-export const leadership = [
-  { role: "Lead Mentor & Mentor's Trainer", org: "MU Programming Olympiad", period: "2025 – 2026" },
+export const leadership: { role: string; org: string; period: string; cert?: string }[] = [
+  {
+    role: "Lead Mentor & Mentor's Trainer",
+    org: "MU Programming Olympiad",
+    period: "2025 – 2026",
+    cert: "https://drive.google.com/file/d/1bBWGg9gosotQIRZ7nM6QMXuOIn9DAV3v/view",
+  },
+  {
+    role: "Judge",
+    org: "MU Programming Olympiad 2025, Season 02",
+    period: "Jun 2025",
+    cert: "https://drive.google.com/file/d/1S26RwEr_p2H6WfiAAFfbUHEPRleEvIkL/view",
+  },
+  {
+    role: "Problem Setter",
+    org: "MU Programming Olympiad 2025, Season 02",
+    period: "Jun 2025",
+    cert: "https://drive.google.com/file/d/1QM74iLhkJyjp5z75TnXucLs3e0lz7UGk/view",
+  },
+  {
+    role: "Content Developer: C (2023), Python (2025), updated C (2026)",
+    org: "MU Programming Olympiad",
+    period: "2023 – 2026",
+    cert: "https://drive.google.com/file/d/1dNdvfHCcWpIGB8sEGhpQ2MH_eRAKZlrk/view",
+  },
   { role: "Mentor", org: "MU Programming Olympiad", period: "2023 – 2026" },
   { role: "Publication Secretary", org: "Metropolitan University Islamic Society", period: "2025 – 2026" },
   { role: "Certified Leadership Facilitator", org: "BYLC", period: "05/2026 – 07/2026" },
   { role: "Co-Curricular Secretary", org: "SWE Innovators Forum, MU", period: "01/2025 – 02/2026" },
   { role: "Additional Cultural Secretary", org: "SWE Innovators Forum, MU", period: "01/2023 – 12/2023" },
-  { role: "Co-Founder", org: "Roar for Street Child", period: "01/2023 – 12/2023" },
+  {
+    role: "Co-Founder",
+    org: "Roar for Street Child: started in Sylhet, later active in every division of Bangladesh",
+    period: "01/2023 – 12/2023",
+  },
 ];
 
 export const education = {
   degree: "B.Sc. in Software Engineering",
   school: "Metropolitan University, Sylhet",
   period: "2023 – 2026 (expected)",
-  detail: "CGPA 3.96 / 4.00 · Vice Chancellor's Scholarship and Chairman's Scholarship for a perfect 4.00 GPA",
+  detail:
+    "CGPA 3.96 / 4.00 · Chairman's Scholarship (4.00 GPA in three consecutive semesters) and Vice Chancellor's Scholarship (three consecutive semesters at 4.00, at most one course at 3.75)",
 };
 
 export const sections = [
